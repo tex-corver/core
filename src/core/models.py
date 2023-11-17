@@ -5,6 +5,7 @@ from datetime import datetime
 from . import messages
 import utils
 
+
 @dataclasses.dataclass
 class BaseModel:
     id: str = str(uuid.uuid4())

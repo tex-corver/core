@@ -1,0 +1,5 @@
+database:
+  type: "postgres"
+  framework: "sqlalchemy"
+  connection:
+    url: "postgresql://admin:adminpw@42.96.43.194:5432/test"

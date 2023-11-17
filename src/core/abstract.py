@@ -4,6 +4,7 @@ from collections.abc import Callable
 
 from . import messages, models
 
+
 class Engine(abc.ABC):
     pass
 
@@ -22,6 +23,7 @@ class Repository(abc.ABC):
                 if many:
                     return models
                 return models[0] if len(models) > 0 else None
+
         return _return_model
 
     def cache(self, models: list[models.BaseModel]):
@@ -29,7 +31,12 @@ class Repository(abc.ABC):
             model_id = getattr(model, "id")
             self.cached[model_id] = model
 
-    def add(self, models: list[models.BaseModel] | models.BaseModel, *args, **kwargs,):
+    def add(
+        self,
+        models: list[models.BaseModel] | models.BaseModel,
+        *args,
+        **kwargs,
+    ):
         if not isinstance(models, list):
             models = [models]
         self._add(models, *args, **kwargs)
@@ -37,19 +44,27 @@ class Repository(abc.ABC):
 
     @return_model
     def get(
-        self, model_class: type[models.BaseModel], many: bool = False, **identities,
+        self,
+        model_class: type[models.BaseModel],
+        many: bool = False,
+        **identities,
     ) -> list[models.BaseModel] | models.BaseModel | None:
         models = self._get(model_class, **identities)
         self.cache(models)
         return models
 
     @abc.abstractmethod
-    def _get(self, model_class: type[models.BaseModel], **identities) -> list[models.BaseModel]:
+    def _get(
+        self, model_class: type[models.BaseModel], **identities
+    ) -> list[models.BaseModel]:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def _add(self, models: list[models.BaseModel], *args, **kwargs) -> list[models.BaseModel]:
+    def _add(
+        self, models: list[models.BaseModel], *args, **kwargs
+    ) -> list[models.BaseModel]:
         raise NotADirectoryError
+
 
 class Session(abc.ABC):
     def create_repository(self, *args, **kwargs):
@@ -65,16 +80,21 @@ class Session(abc.ABC):
     @abc.abstractmethod
     def _commit(self):
         raise NotImplementedError
-    
+
     @abc.abstractmethod
     def _rollback(self):
         raise NotImplementedError
-    
+
     @abc.abstractmethod
     def _create_repository(self, *args, **kwargs) -> Repository:
         raise NotImplementedError
 
+
 class ComponentFactory(abc.ABC):
     @abc.abstractmethod
     def create_session(self, *args, **kwargs) -> Session:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def create_repository(self, *args, **kwargs) -> Repository:
         raise NotImplementedError

@@ -4,9 +4,14 @@ version = "0.1.0"
 description = ""
 authors = ["lle <hjjddbz@gmail.com>"]
 readme = "README.md"
+packages = [
+    { include = "core", from = "src"},
+]
 
 [tool.poetry.dependencies]
 python = "^3.10"
+utils = {git = "git@github.com:tex-corver/utils.git"}
+black = "^23.11.0"
 
 
 [build-system]

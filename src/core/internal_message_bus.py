@@ -11,13 +11,13 @@ logger = logging.getLogger(__file__)
 
 
 @creational.singleton
-class MessageBus:
+class InternalMessageBus:
     def __init__(
         self,
         config: dict[any, any],
-        uow: unit_of_work.AbstractUnitOfWork,
-        command_handlers: dict[Type[messages.Command], callable],
-        event_handlers: dict[Type[messages.Event], list[callable]],
+        uow: unit_of_work.UnitOfWork,
+        command_handlers: dict[Type[messages.Command], callable] = None,
+        event_handlers: dict[Type[messages.Event], list[callable]] = None,
         *args,
         **dependencies,
     ):

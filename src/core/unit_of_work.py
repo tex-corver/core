@@ -10,13 +10,42 @@ logger = logging.getLogger(__file__)
 
 @creational.singleton
 class UnitOfWork:
-    def __init__(self, *args, **kwargs):
-        self.config = utils.get_config()
-        self.init_component_factory()
-        
-    def init_component_factory(self) -> abstract.ComponentFactory:
-        framework = self.config["database"].get("framework", "sqlalchemy")
-        if framework not in adapters.adapter_routers:
-            raise ValueError
-        self.component_factory = adapters.adapter_routers[framework](config=self.config)
-    
+    repo: abstract.Repository
+
+    def __init__(self, config: dict[str, any] = None, *args, **kwargs):
+        if config is None:
+            config = utils.get_config()
+        self.config = config
+        self.factory = adapters.create_component_factory()
+
+    def __enter__(self):
+        """
+        Enters the unit of work context.
+
+        Returns:
+            SqlAlchemyUnitOfWork: The current instance of the unit of work.
+        """
+        self.session = self.factory.create_session()
+        self.repo = self.factory.create_repository(session=self.session)
+        return self
+
+    def __exit__(self, *args):
+        """
+        Exits the unit of work context.
+
+        Args:
+            *args: A variable-length list of positional arguments.
+        """
+        self.session.close()
+
+    def commit(self):
+        """
+        Commits the session's transaction.
+        """
+        self.session.commit()
+
+    def rollback(self):
+        """
+        Rollback the session's transaction.
+        """
+        self.session.rollback()
