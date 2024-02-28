@@ -1,12 +1,15 @@
-from . import sqlalchemy_adapter
-from .. import abstract
+from typing import Any
+
 import utils
+
+from .. import abstract
+from . import sqlalchemy_adapter
 
 adapter_routers = {"sqlalchemy": sqlalchemy_adapter.ComponentFactory}
 
 
 def create_component_factory(
-    config: dict[str, any] = None
+    config: dict[str, Any] | None = None
 ) -> abstract.ComponentFactory:
     if config is None:
         config = utils.get_config()

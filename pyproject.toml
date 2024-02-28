@@ -12,6 +12,7 @@ packages = [
 python = "^3.10"
 utils = {git = "git@github.com:tex-corver/utils.git"}
 black = "^23.11.0"
+pydantic = "^2.6.2"
 
 
 [build-system]

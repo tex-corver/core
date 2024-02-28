@@ -1,22 +1,27 @@
 import logging
-import os
+from typing import Any
 
-from core import abstract, adapters, messages
 import utils
 from utils import creational
 
+from core import abstract, adapters
+
 logger = logging.getLogger(__file__)
+
+
+class UnsupportedDatabaseFrameworkException(Exception):
+    pass
 
 
 @creational.singleton
 class UnitOfWork:
     repo: abstract.Repository
+    factory: abstract.ComponentFactory
+    session: abstract.Session
 
-    def __init__(self, config: dict[str, any] = None, *args, **kwargs):
-        if config is None:
-            config = utils.get_config()
-        self.config = config
-        self.factory = adapters.create_component_factory()
+    def __init__(self, config: dict[str, Any] | None = None):
+        self.config = config or utils.get_config()
+        self.factory = adapters.create_component_factory(self.config)
 
     def __enter__(self):
         """
@@ -29,7 +34,7 @@ class UnitOfWork:
         self.repo = self.factory.create_repository(session=self.session)
         return self
 
-    def __exit__(self, *args):
+    def __exit__(self, *_):
         """
         Exits the unit of work context.
 
@@ -49,3 +54,8 @@ class UnitOfWork:
         Rollback the session's transaction.
         """
         self.session.rollback()
+
+    def collect_event(self):
+        for model in self.repo.cached.values():
+            while model.events:
+                yield model.events.pop(0)

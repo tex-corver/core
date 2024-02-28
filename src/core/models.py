@@ -2,21 +2,32 @@ import dataclasses
 import uuid
 from datetime import datetime
 
-from . import messages
-import utils
+from core import messages
 
 
 @dataclasses.dataclass
 class BaseModel:
-    id: str = str(uuid.uuid4())
-    created_time: datetime = datetime.now()
-    updated_time: datetime = datetime.now()
-    datetime_format: str = "%Y-%m-%d %H:%M:%S"
-    events: list[messages.Event] = None
+    id: str = dataclasses.field(default_factory=lambda: str(uuid.uuid4()))
+    created_time: datetime = dataclasses.field(default_factory=datetime.now)
+    updated_time: datetime = dataclasses.field(default_factory=datetime.now)
+    events: list[messages.Event] = dataclasses.field(default_factory=list)
+    message_id: str | None = None
 
-    def __post_init__(self):
-        if self.events is None:
-            self.events = []
+    _immutable_atributes: set[str] = dataclasses.field(
+        default_factory=lambda: {"id", "created_time"}
+    )
+    _datetime_format: str = "%Y-%m-%d %H:%M:%S"
+
+    @classmethod
+    def immutable_atributes(cls):
+        return cls._immutable_atributes
+
+    def update(self, **kwargs):
+        for key, value in kwargs.items():
+            if key in self._immutable_atributes:
+                continue
+
+            setattr(self, key, value)
 
     @property
     def json(self):
@@ -25,5 +36,25 @@ class BaseModel:
         }
         for attr, value in data.items():
             if isinstance(value, datetime):
-                data[attr] = value.strftime(self.datetime_format)
+                data[attr] = value.strftime(self._datetime_format)
+            if isinstance(value, set):
+                data[attr] = list(value)
         return data
+
+    def __repr__(self) -> str:
+        dict_str = ", ".join(f"{key}: {value}" for key, value in self.__dict__.items())
+        return f"{self.__class__.__name__}({dict_str})"
+
+    def load_from_database(self):
+        setattr(self, "events", [])
+        setattr(self, "_immutable_atributes", set())
+
+
+# def compare_model_with_model(
+#     model: BaseModel,
+#     other: BaseModel,
+#     ignore_attr: set[str] | None = None,
+# ):
+#     ignore_attr = ignore_attr or {"updated_time"}
+#     assert isinstance(model, type(other))
+#     return utils.is_subdict(model.json, other.json, ignore_attr)

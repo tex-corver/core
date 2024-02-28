@@ -1,24 +1,23 @@
 from __future__ import annotations
+
 import logging
-import traceback
-from typing import Type
-import logging
+from typing import Any, Callable, Type
+
+from utils import creational
 
 from core import messages, unit_of_work
-from utils import creational
 
 logger = logging.getLogger(__file__)
 
 
 @creational.singleton
-class InternalMessageBus:
+class MessageBus:
     def __init__(
         self,
-        config: dict[any, any],
+        config: dict[Any, Any],
         uow: unit_of_work.UnitOfWork,
-        command_handlers: dict[Type[messages.Command], callable] = None,
-        event_handlers: dict[Type[messages.Event], list[callable]] = None,
-        *args,
+        command_handlers: dict[Type[messages.Command], Callable],
+        event_handlers: dict[Type[messages.Event], list[Callable]],
         **dependencies,
     ):
         self.config = config
@@ -44,7 +43,7 @@ class InternalMessageBus:
             try:
                 logger.debug("handling event %s", event)
                 handler(event)
-                self.queue.extend(self.uow.collect_new_messages())
+                self.queue.extend(self.uow.collect_event())
             except Exception:
                 logger.exception("Exception handling event %s", event)
                 continue
@@ -54,7 +53,7 @@ class InternalMessageBus:
         try:
             handler = self.command_handlers[type(command)]
             handler(command)
-            self.queue.extend(self.uow.collect_new_messages())
+            self.queue.extend(self.uow.collect_event())
         except Exception:
             logger.exception("Exception handling command %s", command)
             raise

@@ -1,20 +1,19 @@
-import dataclasses
-import re
-from datetime import datetime
+import uuid
+from datetime import UTC, datetime
+
+import pydantic
 
 
-@dataclasses.dataclass
-class Message:
-    def __post_init__(self):
-        self.name = "_".join(re.split("(?=[A-Z])", self.__class__.__name__))
-        self.created_date = datetime.utcnow()
+class Message(pydantic.BaseModel):
+    _id: str = pydantic.PrivateAttr(default_factory=lambda: str(uuid.uuid4()))
+    _created_time: datetime = pydantic.PrivateAttr(
+        default_factory=lambda: datetime.now(UTC)
+    )
 
 
-@dataclasses.dataclass
 class Command(Message):
     pass
 
 
-@dataclasses.dataclass
 class Event(Message):
     pass
