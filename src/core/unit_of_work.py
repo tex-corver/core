@@ -1,4 +1,3 @@
-import logging
 from typing import Any
 
 import utils
@@ -6,15 +5,15 @@ from utils import creational
 
 from core import abstract, adapters
 
-logger = logging.getLogger(__file__)
-
 
 class UnsupportedDatabaseFrameworkException(Exception):
-    pass
+    """UnsupportedDatabaseFrameworkException."""
 
 
 @creational.singleton
 class UnitOfWork:
+    """UnitOfWork."""
+
     repo: abstract.Repository
     factory: abstract.ComponentFactory
     session: abstract.Session
@@ -56,6 +55,7 @@ class UnitOfWork:
         self.session.rollback()
 
     def collect_event(self):
+        """collect_event."""
         for model in self.repo.cached.values():
             while model.events:
                 yield model.events.pop(0)

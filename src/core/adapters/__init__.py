@@ -8,9 +8,15 @@ from . import sqlalchemy_adapter
 adapter_routers = {"sqlalchemy": sqlalchemy_adapter.ComponentFactory}
 
 
-def create_component_factory(
-    config: dict[str, Any] | None = None
-) -> abstract.ComponentFactory:
+def create_component_factory(config: dict[str, Any] | None = None) -> abstract.ComponentFactory:
+    """create_component_factory.
+
+    Args:
+        config (dict[str, Any] | None): config
+
+    Returns:
+        abstract.ComponentFactory:
+    """
     if config is None:
         config = utils.get_config()
         config = config["database"]

@@ -7,6 +7,8 @@ from core import messages
 
 @dataclasses.dataclass
 class BaseModel:
+    """BaseModel."""
+
     id: str = dataclasses.field(default_factory=lambda: str(uuid.uuid4()))
     created_time: datetime = dataclasses.field(default_factory=datetime.now)
     updated_time: datetime = dataclasses.field(default_factory=datetime.now)
@@ -20,9 +22,15 @@ class BaseModel:
 
     @classmethod
     def immutable_atributes(cls):
+        """immutable_atributes."""
         return cls._immutable_atributes
 
     def update(self, **kwargs):
+        """update.
+
+        Args:
+            kwargs:
+        """
         for key, value in kwargs.items():
             if key in self._immutable_atributes:
                 continue
@@ -31,9 +39,8 @@ class BaseModel:
 
     @property
     def json(self):
-        data = {
-            key: val for key, val in self.__dict__.items() if not key.startswith("_")
-        }
+        """json."""
+        data = {key: val for key, val in self.__dict__.items() if not key.startswith("_")}
         for attr, value in data.items():
             if isinstance(value, datetime):
                 data[attr] = value.strftime(self._datetime_format)
@@ -46,15 +53,6 @@ class BaseModel:
         return f"{self.__class__.__name__}({dict_str})"
 
     def load_from_database(self):
+        """load_from_database."""
         setattr(self, "events", [])
         setattr(self, "_immutable_atributes", set())
-
-
-# def compare_model_with_model(
-#     model: BaseModel,
-#     other: BaseModel,
-#     ignore_attr: set[str] | None = None,
-# ):
-#     ignore_attr = ignore_attr or {"updated_time"}
-#     assert isinstance(model, type(other))
-#     return utils.is_subdict(model.json, other.json, ignore_attr)
