@@ -1,55 +1,9 @@
 from __future__ import annotations
 
 import abc
-import functools
-from collections.abc import Callable
 from typing import Any
 
 from core import models as base_model
-
-
-class Engine(abc.ABC):
-    """
-    Abstract base class for creating and managing a database engine.
-    """
-
-
-def return_model(query_func: Callable[..., list[base_model.BaseModel]]):
-    """Decorator for ensuring that the query function always return model"""
-
-    @functools.wraps(query_func)
-    def _return_model(*args, **kwargs):
-        """_return_model.
-
-        Args:
-            args:
-            kwargs:
-        """
-        models = query_func(*args, **kwargs)
-        for model in models:
-            if not hasattr(model, "events"):
-                model.events = []
-
-        return models[0] if len(models) > 0 else None
-
-    return _return_model
-
-
-def return_list(query_func: Callable[..., list[base_model.BaseModel]]):
-    """Decorator that ensures the query function always returns a list"""
-
-    @functools.wraps(query_func)
-    def _return_list(*args, **kwargs):
-        """_return_list.
-
-        Args:
-            args:
-            kwargs:
-        """
-        models = query_func(*args, **kwargs)
-        return models or []
-
-    return _return_list
 
 
 class Repository(abc.ABC):
