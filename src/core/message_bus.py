@@ -1,34 +1,31 @@
 from __future__ import annotations
 
-import logging
-from typing import Any, Callable, Type
+from typing import Any, Callable
 
-from utils import creational
+from loguru import logger
 
 from core import messages, unit_of_work
 
-logger = logging.getLogger(__file__)
 
-
-@creational.singleton
 class MessageBus:
     """MessageBus."""
 
     def __init__(
         self,
-        config: dict[Any, Any],
         uow: unit_of_work.UnitOfWork,
-        command_handlers: dict[Type[messages.Command], Callable],
-        event_handlers: dict[Type[messages.Event], list[Callable]],
-        **dependencies,
+        command_handlers: dict[
+            type[messages.Command],
+            Callable[[messages.Command], Any],
+        ],
+        event_handlers: dict[
+            type[messages.Event],
+            list[Callable[[messages.Event], Any]],
+        ],
     ):
-        self.config = config
         self.uow = uow
         self.event_handlers = event_handlers
         self.command_handlers = command_handlers
         self.queue: list[messages.Message] = []
-        for name, dependency in dependencies.items():
-            setattr(self, name, dependency)
 
     def handle(self, message: messages.Message):
         """handle.

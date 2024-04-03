@@ -1,6 +1,7 @@
 import dataclasses
 import uuid
 from datetime import datetime
+from typing import override
 
 from core import messages
 
@@ -48,11 +49,12 @@ class BaseModel:
                 data[attr] = list(value)
         return data
 
+    @override
     def __repr__(self) -> str:
         dict_str = ", ".join(f"{key}: {value}" for key, value in self.__dict__.items())
         return f"{self.__class__.__name__}({dict_str})"
 
     def load_from_database(self):
         """load_from_database."""
-        setattr(self, "events", [])
-        setattr(self, "_immutable_atributes", set())
+        self.events = []
+        self._immutable_atributes = set()

@@ -1,7 +1,6 @@
 from typing import Any
 
 import utils
-from utils import creational
 
 from core import abstract, adapters
 
@@ -10,13 +9,12 @@ class UnsupportedDatabaseFrameworkException(Exception):
     """UnsupportedDatabaseFrameworkException."""
 
 
-@creational.singleton
 class UnitOfWork:
     """UnitOfWork."""
 
-    repo: abstract.Repository
+    repo: abstract.Repository | None = None
     factory: abstract.ComponentFactory
-    session: abstract.Session
+    session: abstract.Session | None = None
 
     def __init__(self, config: dict[str, Any] | None = None):
         self.config = config or utils.get_config()
@@ -40,22 +38,28 @@ class UnitOfWork:
         Args:
             *args: A variable-length list of positional arguments.
         """
-        self.session.close()
+        if self.session:
+            self.session.close()
 
     def commit(self):
         """
         Commits the session's transaction.
         """
-        self.session.commit()
+        if self.session:
+            self.session.commit()
 
     def rollback(self):
         """
         Rollback the session's transaction.
         """
-        self.session.rollback()
+        if self.session:
+            self.session.rollback()
 
     def collect_event(self):
         """collect_event."""
+        if self.repo is None:
+            return
+
         for model in self.repo.cached.values():
             while model.events:
                 yield model.events.pop(0)

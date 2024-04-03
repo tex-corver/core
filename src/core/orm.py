@@ -4,7 +4,7 @@ from collections.abc import Callable
 mapped_orm: bool = False
 
 
-def map_once(mapper_function: Callable):
+def map_once(mapper_function: Callable[..., None]):
     """map_once.
 
     Args:

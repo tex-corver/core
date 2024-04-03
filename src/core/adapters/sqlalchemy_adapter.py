@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-import logging
-from typing import Any
+from typing import Any, override
 
 import sqlalchemy
 from sqlalchemy import orm as sqlalchemy_orm
 
-from core import abstract, models as base_model
-
-logger = logging.getLogger(__file__)
+from core import abstract
+from core import models as base_model
 
 
 class Session(abstract.Session):
@@ -24,22 +22,28 @@ class Session(abstract.Session):
         super().__init__(*args, **kwargs)
 
     @property
-    def _core_session(self) -> sqlalchemy_orm.Session:
+    def core_session(self) -> sqlalchemy_orm.Session:
+        """Getter method for core_session property."""
         return self.__core_session
 
-    @_core_session.setter
-    def _core_session(self, core_session: sqlalchemy_orm.Session):
+    @core_session.setter
+    def core_session(self, core_session: sqlalchemy_orm.Session):
+        """Setter method for core_session property."""
         self.__core_session = core_session
 
+    @override
     def _close(self):
-        self._core_session.close()
+        self.__core_session.close()
 
+    @override
     def _commit(self):
-        self._core_session.commit()
+        self.__core_session.commit()
 
+    @override
     def _rollback(self):
-        self._core_session.rollback()
+        self.__core_session.rollback()
 
+    @override
     def _create_repository(self, *args, **kwargs) -> Repository:
         repo = Repository(self, *args, **kwargs)
         return repo
@@ -50,8 +54,9 @@ class Repository(abstract.Repository):
 
     def __init__(self, session: Session):
         super().__init__()
-        self.session = session._core_session
+        self.session = session.core_session
 
+    @override
     def _add(
         self,
         models: list[base_model.BaseModel],
@@ -61,22 +66,15 @@ class Repository(abstract.Repository):
         self.session.add_all(models, *args, **kwargs)
         return models
 
-    @abstract.return_list
+    @override
     def _get(
         self,
         model_class: type[base_model.BaseModel],
         **identities,
     ) -> list[base_model.BaseModel]:
-        models_ = []
-        if identities is not None:
-            models_ = self.session.scalars(
-                sqlalchemy.select(model_class).filter_by(**identities)
-            ).all()
-        else:
-            models_ = self.session.scalars(sqlalchemy.select(model_class)).all()
-        return list(models_)
+        return self.session.query(model_class).filter_by(**identities).all()
 
-    @abstract.return_list
+    @override
     def _filter(
         self,
         model_class: type[base_model.BaseModel],
@@ -86,15 +84,9 @@ class Repository(abstract.Repository):
         models = self.session.query(model_class).filter(*args, **kwargs).all()
         return models
 
+    @override
     def _remove(self, model: base_model.BaseModel, *args, **kwargs):
-        table = type(model)
-        self.session.execute(
-            sqlalchemy.delete(table).where(
-                getattr(table, "id") == getattr(model, "id"),
-                *args,
-                **kwargs,
-            )
-        )
+        self.session.delete(model, *args, **kwargs)
 
 
 class SessionFactory:
@@ -106,15 +98,9 @@ class SessionFactory:
         **kwargs,
     ):
         self.engine = engine
-        self.__core_factory = sqlalchemy_orm.sessionmaker(bind=engine, **kwargs)
-
-    @property
-    def _core_factory(self) -> sqlalchemy_orm.sessionmaker:
-        return self.__core_factory
-
-    @_core_factory.setter
-    def _core_factory(self, core_factory: sqlalchemy_orm.sessionmaker):
-        self.__core_factory = core_factory
+        self.core_factory = sqlalchemy_orm.sessionmaker(
+            bind=engine, expire_on_commit=False, **kwargs
+        )
 
     def create_session(self, *args, **kwargs) -> Session:
         """create_session.
@@ -126,8 +112,8 @@ class SessionFactory:
         Returns:
             Session:
         """
-        core_session = self.__core_factory()
-        session = Session(_core_session=core_session, *args, **kwargs)
+        core_session = self.core_factory()
+        session = Session(core_session, *args, **kwargs)
         return session
 
 
@@ -136,7 +122,7 @@ class Database:
 
     def __init__(self, engine: sqlalchemy.engine.Engine) -> None:
         self.engine = engine
-        self.cached: dict[str, set] = {}
+        self.cached: dict[str, set[str]] = {}
 
     def get(self, table: str, model_id: str):
         """get.
@@ -174,14 +160,10 @@ class ComponentFactory(abstract.ComponentFactory):
     """ComponentFactory."""
 
     def __init__(self, config: dict[str, Any]):
-        self.config = config
-        self.session_factory = SessionFactory(**config["connection"])
+        self.engine = sqlalchemy.create_engine(**config["connection"])
+        self.session_factory = SessionFactory(self.engine)
 
-    def create_engine(self):
-        """create_engine."""
-        engine = sqlalchemy.create_engine(**self.config["connection"])
-        return engine
-
+    @override
     def create_session(self, *args, **kwargs) -> Session:
         """create_session.
 
@@ -195,6 +177,7 @@ class ComponentFactory(abstract.ComponentFactory):
         session = self.session_factory.create_session(*args, **kwargs)
         return session
 
+    @override
     def create_repository(
         self,
         *args,
@@ -211,17 +194,6 @@ class ComponentFactory(abstract.ComponentFactory):
         session = session or self.create_session()
         repo = Repository(session, *args, **kwargs)
         return repo
-
-    def create_metadata(self) -> sqlalchemy.MetaData:
-        """create_metadata.
-
-        Args:
-
-        Returns:
-            sqlalchemy.MetaData:
-        """
-        metadata = sqlalchemy.MetaData()
-        return metadata
 
     def create_orm_registry(self) -> sqlalchemy_orm.registry:
         """create_orm_registry.

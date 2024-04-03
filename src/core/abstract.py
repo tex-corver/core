@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import abc
+import functools
 from collections.abc import Callable
 from typing import Any
 
@@ -16,6 +17,7 @@ class Engine(abc.ABC):
 def return_model(query_func: Callable[..., list[base_model.BaseModel]]):
     """Decorator for ensuring that the query function always return model"""
 
+    @functools.wraps(query_func)
     def _return_model(*args, **kwargs):
         """_return_model.
 
@@ -26,20 +28,17 @@ def return_model(query_func: Callable[..., list[base_model.BaseModel]]):
         models = query_func(*args, **kwargs)
         for model in models:
             if not hasattr(model, "events"):
-                setattr(model, "events", [])
-
-        many = kwargs.get("many", False)
-        if many:
-            return models
+                model.events = []
 
         return models[0] if len(models) > 0 else None
 
     return _return_model
 
 
-def return_list(query_func: Callable[..., Any]):
+def return_list(query_func: Callable[..., list[base_model.BaseModel]]):
     """Decorator that ensures the query function always returns a list"""
 
+    @functools.wraps(query_func)
     def _return_list(*args, **kwargs):
         """_return_list.
 
@@ -66,7 +65,7 @@ class Repository(abc.ABC):
             models (list[base_model.BaseModel]): models
         """
         for model in models:
-            model_id = getattr(model, "id")
+            model_id = model.id
             self.cached[model_id] = model
 
     def add(
@@ -84,15 +83,15 @@ class Repository(abc.ABC):
         """
         if not isinstance(models, list):
             models = [models]
+
         self._add(models, *args, **kwargs)
         self.cache(models)
 
     def get(
         self,
         model_class: type[base_model.BaseModel],
-        many: bool = False,
         **identities,
-    ) -> list[base_model.BaseModel] | base_model.BaseModel | None:
+    ) -> list[base_model.BaseModel]:
         """get.
 
         Args:
@@ -105,10 +104,8 @@ class Repository(abc.ABC):
         """
         models = self._get(model_class, **identities)
         self.cache(models)
-        if many:
-            return models or []
 
-        return models[0] if len(models) > 0 else None
+        return models
 
     def filter(self, model_class: type[base_model.BaseModel], *args, **kwargs):
         """filter.
