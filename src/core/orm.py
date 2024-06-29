@@ -13,7 +13,7 @@ def map_once(mapper_function: Callable[..., None]):
 
     def _start_mappers(*args, **kwargs):
         global mapped_orm
-        if not mapped_orm:
+        if mapped_orm:
             return None
 
         mapped_orm = True
