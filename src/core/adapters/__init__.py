@@ -19,9 +19,8 @@ def create_component_factory(config: dict[str, Any] | None = None) -> abstract.C
     Returns:
         abstract.ComponentFactory:
     """
-    config = config or utils.get_config()
+    config = config or utils.get_config()["database"]
 
-    config = config["database"]
     assert config, "Database configuration is required."
 
     framework = config["framework"]
