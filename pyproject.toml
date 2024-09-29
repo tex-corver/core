@@ -1,20 +1,21 @@
 [tool.poetry]
-name = "core"
+name = "tex-corver-core"
 version = "0.1.0"
 description = ""
 authors = ["lle <hjjddbz@gmail.com>"]
 readme = "README.md"
 packages = [
-    { include = "core", from = "src"},
+    { include = "core", from = "src" },
 ]
 
 [tool.poetry.dependencies]
 python = "^3.12"
-utils = {git = "git@github.com:tex-corver/utils.git"}
 black = "^23.11.0"
 pydantic = "^2.6.2"
 loguru = "^0.7.2"
+icecream = "^2.1.3"
 
+tex-corver-utils = {git = "git@github.com:tex-corver/utils.git"}
 
 [tool.poetry.group.dev.dependencies]
 ipython = "^8.22.2"

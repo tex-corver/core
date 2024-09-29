@@ -1,28 +1,13 @@
-import pathlib
-from typing import Any
+from typing import Any, Generator
 
 import pytest
 import utils
-from loguru import logger
 from sqlalchemy import Column, DateTime, String, Table
 
 import core
 from core import adapters, models, unit_of_work
 
-
-@pytest.fixture
-def config(tmp_path: pathlib.Path):
-    sqlite_path = tmp_path / "test.db"
-    config = utils.Configuration(
-        {
-            "database": {
-                "framework": "sqlalchemy",
-                "connection": {"url": "sqlite:///" + sqlite_path.as_posix()},
-            },
-        }
-    )
-
-    yield config
+logger = utils.get_logger()
 
 
 def start_mappers(config: dict[str, Any]):
@@ -76,3 +61,13 @@ def test_bootstrap(
         logger.info(results)
         assert all(result.id == model.id for result in results)
         assert all(result.id == model.id for result in results)
+
+
+class TestBootstrapper:
+    @pytest.fixture
+    def bootstrapper(self) -> Generator[core.Bootstrapper, Any, None]:
+        bootstrapper_ = core.Bootstrapper()
+        yield bootstrapper_
+
+    def test_init(self, bootstrapper: core.Bootstrapper): ...
+    def test_init(self, bootstrapper: core.Bootstrapper): ...
