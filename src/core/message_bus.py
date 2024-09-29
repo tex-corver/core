@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-from loguru import logger
+import utils
 
 from core import messages, unit_of_work
+
+logger = utils.get_logger()
 
 
 class MessageBus:
@@ -26,6 +28,7 @@ class MessageBus:
         self.event_handlers = event_handlers
         self.command_handlers = command_handlers
         self.queue: list[messages.Message] = []
+        self.logger = logger
 
     def handle(self, message: messages.Message):
         """handle.
@@ -51,11 +54,17 @@ class MessageBus:
         """
         for handler in self.event_handlers[type(event)]:
             try:
-                logger.debug("handling event %s", event)
+                self.logger.debug(
+                    "handling event %s with handler %s", event, handler.__name__
+                )
                 handler(event)
                 self.queue.extend(self.uow.collect_event())
             except Exception:  # pylint: disable=broad-except
-                logger.exception("Exception handling event %s", event)
+                self.logger.exception(
+                    "Exception handling event %s with handler %s",
+                    event,
+                    handler.__name__,
+                )
                 continue
 
     def handle_command(self, command: messages.Command):
@@ -64,11 +73,11 @@ class MessageBus:
         Args:
             command (messages.Command): command
         """
-        logger.debug("handling command %s", command)
+        self.logger.debug("handling command %s with handler %s", command, handler.__name__)
         try:
             handler = self.command_handlers[type(command)]
             handler(command)
             self.queue.extend(self.uow.collect_event())
         except Exception:  # pylint: disable=broad-except
-            logger.exception("Exception handling command %s", command)
+            self.logger.exception("Exception handling command %s", command)
             raise

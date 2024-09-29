@@ -1,4 +1,9 @@
-__all__ = ["Bootstrapper"]
+__all__ = [
+    "Bootstrapper",
+    "CommandRouter",
+    "EventRouter",
+    "Dependencies",
+]
 import os
 from typing import Callable, NewType, NoReturn
 
@@ -7,7 +12,6 @@ import utils
 
 import core
 import core.dependency_injection
-from core.adapters import orm
 
 CommandRouter = NewType(
     "CommandRouter", dict[type[core.Command], Callable[..., NoReturn]]
@@ -17,84 +21,80 @@ EventRouter = NewType(
     "EventRouter", dict[type[core.Event], list[Callable[..., NoReturn]]]
 )
 
+Dependencies = NewType("Dependencies", dict[str, object])
+
 
 class Bootstrapper(pydantic.BaseModel):
     use_orm: bool = False
+    orm_func: Callable[..., NoReturn] = None
     command_router: CommandRouter = pydantic.Field(default_factory=dict)
     event_router: EventRouter = pydantic.Field(default_factory=dict)
-    dependencies: dict[str, Callable[..., NoReturn]] = {}
+    dependencies: dict[str, Callable[..., NoReturn]] = pydantic.Field(
+        default_factory=dict
+    )
+    _injected_command_handlers: dict[type[core.Command], Callable[..., NoReturn]] = (
+        pydantic.PrivateAttr(default_factory=dict)
+    )
+    _injected_event_handlers: dict[type[core.Event], list[Callable[..., NoReturn]]] = (
+        pydantic.PrivateAttr(default_factory=dict)
+    )
 
-    # @property
-    # def use_orm(self):
-    #     return self._use_orm
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.start_orm()
+        self._injected_command_handlers = self.inject_command_handlers()
+        self._injected_event_handlers = self.inject_event_handlers()
 
-    # @use_orm.setter
-    # def use_orm(
-    #     self,
-    #     new_use_orm: bool,
-    # ):
-    #     self._use_orm = new_use_orm
+    def start_orm(self):
+        if self.use_orm:
+            if self.orm_func is None:
+                raise ValueError("ORM function is required when use_orm is True")
+            self.orm_func()
 
-    # @property
-    # def command_router(self) -> CommandRouter:
-    #     return self._command_router
-
-    # @command_router.setter
-    # def command_router(
-    #     self,
-    #     new_command_router: CommandRouter,
-    # ):
-    #     self._command_router = new_command_router
-
-    # @property
-    # def event_router(self) -> EventRouter:
-    #     return self._event_router
-
-    # @event_router.setter
-    # def event_router(self, new_event_router: dict[type, list[Callable[..., NoReturn]]]):
-    #     self._event_router = new_event_router
-
-    # @property
-    # def dependencies(self):
-    #     return self._dependencies
-
-    # @dependencies.setter
-    # def dependencies(self, new_dependencies: dict[str, Callable[..., NoReturn]]):
-    #     self._dependencies = new_dependencies
-
-    def setup_dependencies(self):
-        for name, dependency in self._dependencies.items():
-            setattr(self, name, dependency)
-
-    def bootstrap(self) -> core.MessageBus:
-        # Load config
-        config_path = os.environ.get("CONFIG_PATH", "/etc/config")
-        config = utils.load_config(config_path)
-
-        # Setup dependencies
-        uow = core.UnitOfWork(config["database"])
-        object_store = data_store.ObjectStore(config["data_store"])
-        dependencies = {
-            "uow": uow,
-            "object_store": object_store,
-        }
-        command_handler_router = self.command_router
-        event_handler_router = self.event_router
+    def inject_command_handlers(self):
         injected_command_handlers = {
             command_type: core.dependency_injection.inject_dependencies(
-                handler, dependencies
+                handler,
+                self.dependencies,
             )
-            for command_type, handler in command_handler_router.items()
+            for command_type, handler in self.command_router.items()
         }
+        return injected_command_handlers
+
+    def inject_event_handlers(self):
         injected_event_handlers = {
             event_type: [
-                core.dependency_injection.inject_dependencies(handler, dependencies)
+                core.dependency_injection.inject_dependencies(
+                    handler,
+                    self.dependencies,
+                )
                 for handler in handlers
             ]
-            for event_type, handlers in event_handler_router.items()
+            for event_type, handlers in self.event_router.items()
         }
-        bus = core.MessageBus(uow, injected_command_handlers, injected_event_handlers)
+        return injected_event_handlers
+
+    def bootstrap(self) -> core.MessageBus:
+        # Setup dependencies
+        bus = core.MessageBus(
+            self.dependencies["uow"],
+            self._injected_command_handlers,
+            self._injected_event_handlers,
+        )
         return bus
 
-def boostrap():
-    ...
+BOOTSTRAPPER: Bootstrapper = None
+
+def get_bootstrapper() -> Bootstrapper:
+    global BOOTSTRAPPER
+    return BOOTSTRAPPER
+
+def set_bootstrapper(bootstrapper: Bootstrapper):
+    global BOOTSTRAPPER
+    BOOTSTRAPPER = bootstrapper
+
+def bootstrap() -> core.MessageBus:
+    global BOOTSTRAPPER
+    if BOOTSTRAPPER is None:
+        raise ValueError("Bootstrapper is not set")
+    return BOOTSTRAPPER.bootstrap()
