@@ -10,15 +10,15 @@ from typing import Callable, NewType, NoReturn
 import pydantic
 import utils
 
-import core
 import core.dependency_injection
+from core import message_bus, messages
 
 CommandRouter = NewType(
-    "CommandRouter", dict[type[core.Command], Callable[..., NoReturn]]
+    "CommandRouter", dict[type[messages.Command], Callable[..., NoReturn]]
 )
 
 EventRouter = NewType(
-    "EventRouter", dict[type[core.Event], list[Callable[..., NoReturn]]]
+    "EventRouter", dict[type[messages.Event], list[Callable[..., NoReturn]]]
 )
 
 Dependencies = NewType("Dependencies", dict[str, object])
@@ -29,15 +29,13 @@ class Bootstrapper(pydantic.BaseModel):
     orm_func: Callable[..., NoReturn] = None
     command_router: CommandRouter = pydantic.Field(default_factory=dict)
     event_router: EventRouter = pydantic.Field(default_factory=dict)
-    dependencies: dict[str, Callable[..., NoReturn]] = pydantic.Field(
-        default_factory=dict
-    )
-    _injected_command_handlers: dict[type[core.Command], Callable[..., NoReturn]] = (
-        pydantic.PrivateAttr(default_factory=dict)
-    )
-    _injected_event_handlers: dict[type[core.Event], list[Callable[..., NoReturn]]] = (
-        pydantic.PrivateAttr(default_factory=dict)
-    )
+    dependencies: dict[str, object] = pydantic.Field(default_factory=dict)
+    _injected_command_handlers: dict[
+        type[messages.Command], Callable[..., NoReturn]
+    ] = pydantic.PrivateAttr(default_factory=dict)
+    _injected_event_handlers: dict[
+        type[messages.Event], list[Callable[..., NoReturn]]
+    ] = pydantic.PrivateAttr(default_factory=dict)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -74,26 +72,30 @@ class Bootstrapper(pydantic.BaseModel):
         }
         return injected_event_handlers
 
-    def bootstrap(self) -> core.MessageBus:
+    def bootstrap(self) -> message_bus.MessageBus:
         # Setup dependencies
-        bus = core.MessageBus(
+        bus = message_bus.MessageBus(
             self.dependencies["uow"],
             self._injected_command_handlers,
             self._injected_event_handlers,
         )
         return bus
 
+
 BOOTSTRAPPER: Bootstrapper = None
+
 
 def get_bootstrapper() -> Bootstrapper:
     global BOOTSTRAPPER
     return BOOTSTRAPPER
 
+
 def set_bootstrapper(bootstrapper: Bootstrapper):
     global BOOTSTRAPPER
     BOOTSTRAPPER = bootstrapper
 
-def bootstrap() -> core.MessageBus:
+
+def bootstrap() -> message_bus.MessageBus:
     global BOOTSTRAPPER
     if BOOTSTRAPPER is None:
         raise ValueError("Bootstrapper is not set")

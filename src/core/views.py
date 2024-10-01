@@ -1,3 +1,7 @@
+__all__ = [
+    "View",
+    "VIEW",
+]
 from typing import Any
 
 import sqlalchemy.orm
@@ -13,10 +17,12 @@ directions = {
 
 
 class View:
-    def __init__(self, config: dict[str, Any]):
-        self.config = config
+    config: dict[str, Any]
 
-    def fetch_model(model_cls, **identities) -> core.BaseModel:
+    def __init__(self, config: dict[str, Any] = None):
+        self.config = config or utils.get_config()["database"]
+
+    def fetch_model(self, model_cls, **identities) -> core.BaseModel:
         bus = bootstrap.bootstrap()
         with bus.uow:
             models = bus.uow.repo.get(
@@ -26,6 +32,7 @@ class View:
             return models[0] if len(models) else None
 
     def fetch_models(
+        self,
         model_cls,
         load_strategy: str = "noload",
         exclude_relationships: list[str] = None,

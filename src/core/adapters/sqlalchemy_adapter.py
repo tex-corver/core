@@ -8,6 +8,12 @@ from sqlalchemy import orm as sqlalchemy_orm
 from core import abstract
 from core import models as base_model
 
+__all__ = [
+    "Session",
+    "ComponentFactory",
+    "Repository",
+]
+
 
 class Session(abstract.Session):
     """Session."""
@@ -147,7 +153,9 @@ class Database:
             model_id (str): model_id
         """
         with self.engine.connect() as conn:
-            conn.execute(sqlalchemy.text(f'DELETE FROM {table} WHERE id = "{model_id}";'))
+            conn.execute(
+                sqlalchemy.text(f'DELETE FROM {table} WHERE id = "{model_id}";')
+            )
 
     def clear(self):
         """clear."""

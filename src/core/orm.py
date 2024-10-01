@@ -1,7 +1,7 @@
 # pylint: disable=global-statement
 from collections.abc import Callable
 
-mapped_orm: bool = False
+MAPPED_ORM: bool = False
 
 
 def map_once(mapper_function: Callable[..., None]):
@@ -12,11 +12,11 @@ def map_once(mapper_function: Callable[..., None]):
     """
 
     def _start_mappers(*args, **kwargs):
-        global mapped_orm
-        if mapped_orm:
+        global MAPPED_ORM
+        if MAPPED_ORM:
             return None
 
-        mapped_orm = True
+        MAPPED_ORM = True
         return mapper_function(*args, **kwargs)
 
     return _start_mappers
