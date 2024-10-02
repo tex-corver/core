@@ -55,7 +55,9 @@ class MessageBus:
         for handler in self.event_handlers[type(event)]:
             try:
                 self.logger.debug(
-                    "handling event %s with handler %s", event, handler.__name__
+                    "handling event %s with handler %s",
+                    event,
+                    handler.__name__,
                 )
                 handler(event)
                 self.queue.extend(self.uow.collect_event())
@@ -73,9 +75,13 @@ class MessageBus:
         Args:
             command (messages.Command): command
         """
-        self.logger.debug("handling command %s with handler %s", command, handler.__name__)
+        handler = self.command_handlers[type(command)]
+        self.logger.debug(
+            "handling command %s with handler %s",
+            command,
+            handler.__name__,
+        )
         try:
-            handler = self.command_handlers[type(command)]
             handler(command)
             self.queue.extend(self.uow.collect_event())
         except Exception:  # pylint: disable=broad-except
