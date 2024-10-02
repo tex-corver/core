@@ -1,17 +1,20 @@
+from __future__ import annotations
+import os
+from typing import Callable, NewType, NoReturn
+
+import pydantic
+import utils
+from utils import creational
+
+import core.dependency_injection
+from core import message_bus, messages
+
 __all__ = [
     "Bootstrapper",
     "CommandRouter",
     "EventRouter",
     "Dependencies",
 ]
-import os
-from typing import Callable, NewType, NoReturn
-
-import pydantic
-import utils
-
-import core.dependency_injection
-from core import message_bus, messages
 
 CommandRouter = NewType(
     "CommandRouter", dict[type[messages.Command], Callable[..., NoReturn]]
@@ -23,7 +26,9 @@ EventRouter = NewType(
 
 Dependencies = NewType("Dependencies", dict[str, object])
 
+BOOTSTRAPPER: Bootstrapper = None
 
+@creational.singleton
 class Bootstrapper(pydantic.BaseModel):
     use_orm: bool = False
     orm_func: Callable[..., NoReturn] = None
@@ -42,6 +47,8 @@ class Bootstrapper(pydantic.BaseModel):
         self.start_orm()
         self._injected_command_handlers = self.inject_command_handlers()
         self._injected_event_handlers = self.inject_event_handlers()
+        global BOOTSTRAPPER
+        BOOTSTRAPPER = self
 
     def start_orm(self):
         if self.use_orm:
@@ -82,7 +89,6 @@ class Bootstrapper(pydantic.BaseModel):
         return bus
 
 
-BOOTSTRAPPER: Bootstrapper = None
 
 
 def get_bootstrapper() -> Bootstrapper:

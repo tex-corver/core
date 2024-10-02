@@ -10,7 +10,9 @@ adapter_routers = {
 }
 
 
-def create_component_factory(config: dict[str, Any] | None = None) -> abstract.ComponentFactory:
+def create_component_factory(
+    config: dict[str, Any] | None = None
+) -> abstract.ComponentFactory:
     """create_component_factory.
 
     Args:
