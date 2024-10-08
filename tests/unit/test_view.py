@@ -24,26 +24,26 @@ class TestView:
 
     def test_fetch_model(
         self,
-        mock_bootstrap,
-        mock_bus,
+        bootstrap,
+        bus,
         view,
     ):
         # arrange
-        mock_bus.uow.repo.get.return_value = [fake.Model(name="test")]
+        bus.uow.repo.get.return_value = [fake.Model(name="test")]
         # act
         model = view.fetch_model(fake.Model, id=1)
         # assert
-        mock_bootstrap.assert_called_once()
-        mock_bus.uow.repo.get.assert_called_once_with(fake.Model, id=1)
+        bootstrap.assert_called_once()
+        bus.uow.repo.get.assert_called_once_with(fake.Model, id=1)
         assert model is not None
 
     def test_fetch_models(
         self,
-        mock_component_factory,
-        mock_session,
+        component_factory,
+        session,
         view,
     ):
         # act
         models = view.fetch_models(fake.Model)
         # assert
-        mock_session.core_session.query.assert_called_once()
+        session.core_session.query.assert_called_once()

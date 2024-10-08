@@ -9,18 +9,18 @@ from tests.double import fake
 
 
 @pytest.fixture
+def uow(config: dict[str, Any]) -> Generator[core.UnitOfWork, Any, None]:
+    uow = core.UnitOfWork(config["database"])
+    yield uow
+
+
+@pytest.fixture
 def dependencies(
     uow: core.UnitOfWork,
 ) -> Generator[core.Dependencies, Any, None]:
     yield {
         "uow": uow,
     }
-
-
-@pytest.fixture
-def uow(config: dict[str, Any]) -> Generator[core.UnitOfWork, Any, None]:
-    uow = core.UnitOfWork(config["database"])
-    yield uow
 
 
 @pytest.fixture
