@@ -28,7 +28,8 @@ Dependencies = NewType("Dependencies", dict[str, object])
 
 BOOTSTRAPPER: Bootstrapper = None
 
-@creational.singleton
+
+# @creational.singleton
 class Bootstrapper(pydantic.BaseModel):
     use_orm: bool = False
     orm_func: Callable[..., NoReturn] = None
@@ -87,8 +88,6 @@ class Bootstrapper(pydantic.BaseModel):
             self._injected_event_handlers,
         )
         return bus
-
-
 
 
 def get_bootstrapper() -> Bootstrapper:

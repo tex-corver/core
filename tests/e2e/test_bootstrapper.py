@@ -12,10 +12,6 @@ from tests.double import fake
 logger = utils.get_logger()
 
 
-
-
-
-
 class TestBootstrapper:
     def test_init(self, bootstrapper: core.Bootstrapper):
         bootstrapper

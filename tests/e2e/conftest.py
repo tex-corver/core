@@ -25,6 +25,7 @@ def uow(config: dict[str, Any]) -> Generator[core.UnitOfWork, Any, None]:
 
 @pytest.fixture
 def start_orm_func(config: dict[str, Any]):
+    @orm.map_once
     def _start_orm_func():
         component_factory = adapters.create_component_factory(config["database"])
         assert isinstance(

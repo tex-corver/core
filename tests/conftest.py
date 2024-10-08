@@ -11,7 +11,7 @@ from tests.double import fake
 
 logger = utils.get_logger()
 
-PROJECT_PATH = pathlib.Path(__file__).parents[2]
+PROJECT_PATH = pathlib.Path(__file__).parents[1]
 
 
 @pytest.fixture
