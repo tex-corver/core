@@ -17,12 +17,27 @@ directions = {
 
 
 class View:
+    """View.
+
+    Attributes:
+        config (dict[str, Any]): A dictionary indicating configurations of the application. Defaults to utils database.
+    """
+
     config: dict[str, Any]
 
     def __init__(self, config: dict[str, Any] = None):
         self.config = config or utils.get_config()["database"]
 
     def fetch_model(self, model_cls, **identities) -> core.BaseModel:
+        """fetch_model.
+
+        Args:
+            model_cls (_type_): The class of the model.
+            identities (kwangs): Identities of the model.
+
+        Returns:
+            core.BaseModel: An instance of the BaseModel.
+        """
         bus = bootstrap.bootstrap()
         with bus.uow:
             models = bus.uow.repo.get(
@@ -41,6 +56,20 @@ class View:
         offset: int = 0,
         **filters,
     ) -> list[core.BaseModel]:
+        """fetch_models
+
+        Args:
+            model_cls (_type_): The class of the models.
+            load_strategy (str, optional): Defaults to "noload".
+            exclude_relationships (list[str], optional): Defaults to None.
+            orders (list[str], optional): Defaults to None.
+            limit (int, optional): Defaults to 20.
+            offset (int, optional): Defaults to 0.
+            filters (kwargs): Filters of the query.
+
+        Returns:
+            list[core.BaseModel]: A list of instances of the BaseModel.
+        """
         filters = filters or {}
         if orders is None:
             orders = []
