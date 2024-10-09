@@ -38,8 +38,10 @@ def start_orm_func(config: dict[str, Any]):
             "models",
             registry.metadata,
             Column("id", String(200), primary_key=True),
-            Column("name", String(200)),
             Column("created_time", DateTime),
+            Column("updated_time", DateTime),
+            Column("message_id", String(200)),
+            Column("name", String(200)),
         )
 
         registry.map_imperatively(fake.Model, model_table)

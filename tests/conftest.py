@@ -37,11 +37,12 @@ def bootstrapper(
 
 
 def create_model(
-    command: fake.CreatedModelEvent,
+    command: fake.CreateModelCommand,
     uow: unit_of_work.UnitOfWork,
 ):
     with uow:
-        uow.repo.add(fake.Model(name=command.name))
+        uow.repo.add(fake.Model(name=command.name, message_id=command._id))
+        uow.commit()
 
 
 def create_model_with_error(
@@ -49,8 +50,12 @@ def create_model_with_error(
     uow: unit_of_work.UnitOfWork,
 ):
     with uow:
-        uow.repo.add(fake.Model(name=command.name))
-        raise ValueError("Error while handling create model command")
+        try:
+            uow.repo.add(fake.Model(name=command.name, message_id=command._id))
+            raise ValueError("Error while handling create model command")
+        except ValueError as e:
+            uow.rollback()
+            raise
 
 
 def handle_created_model_1(event: fake.CreatedModelEvent):
