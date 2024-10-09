@@ -7,6 +7,7 @@ from icecream import ic
 from sqlalchemy import Column, DateTime, String, Table
 
 import core
+from core import orm
 from tests.double import fake
 
 logger = utils.get_logger()
@@ -14,15 +15,15 @@ logger = utils.get_logger()
 
 @pytest.fixture
 def start_orm_func(config: dict[str, Any]):
-    yield mock.MagicMock(lambda: True)
+    yield mock.MagicMock(orm.map_once(lambda: None))
 
 
 @pytest.fixture
 def dependencies(
-    mock_uow: mock.MagicMock,
+    uow: mock.MagicMock,
 ) -> Generator[core.Dependencies, Any, None]:
     yield {
-        "uow": mock_uow,
+        "uow": uow,
     }
 
 

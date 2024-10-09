@@ -2,6 +2,8 @@ __all__ = [
     "ModelSchema",
     "CreateModelCommand",
     "CreatedModelEvent",
+    "CreateModelErrorCommand",
+    "CreatedModelErrorEvent",
 ]
 import pydantic
 
@@ -17,4 +19,12 @@ class CreateModelCommand(core.Command):
 
 
 class CreatedModelEvent(core.Event):
+    model: ModelSchema
+
+
+class CreateModelErrorCommand(core.Command):
+    name: str
+
+
+class CreatedModelErrorEvent(core.Event):
     model: ModelSchema
