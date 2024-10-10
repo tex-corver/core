@@ -75,5 +75,5 @@ def bootstrapper_kwargs(
 
 
 @pytest.fixture
-def bus(bootstrapper: core.Bootstrapper):
+def bus(bootstrapper: core.Bootstrapper) -> Generator[core.MessageBus, Any, None]:
     yield bootstrapper.bootstrap()

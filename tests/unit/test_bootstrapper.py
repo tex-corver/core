@@ -20,10 +20,10 @@ def start_orm_func(config: dict[str, Any]):
 
 @pytest.fixture
 def dependencies(
-    uow: mock.MagicMock,
+    mock_uow: mock.MagicMock,
 ) -> Generator[core.Dependencies, Any, None]:
     yield {
-        "uow": uow,
+        "uow": mock_uow,
     }
 
 
