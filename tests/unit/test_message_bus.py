@@ -65,6 +65,46 @@ def assert_handle_create_model_command(
     # message_bus.uow.__exit__.assert_called_once()
 
 
+def assert_handle_create_model_event(
+    message,
+    message_bus,
+    **kwargs,
+):
+    with mock.patch.object(
+        message_bus,
+        "logger",
+        new_callable=mock.PropertyMock,
+    ) as mock_logger:
+        # arrange
+        handlers_count = len(message_bus.event_handlers[type(message)])
+        # act
+        message_bus.handle_event(message)
+        # assert
+        assert mock_logger.debug.call_count == handlers_count
+        for _ in range(handlers_count):
+            ic(message_bus.event_handlers[type(message)][_].__name__)
+
+
+def assert_handle_create_model_error_event(
+    message,
+    message_bus,
+    **kwargs,
+):
+    with mock.patch.object(
+        message_bus,
+        "logger",
+        new_callable=mock.PropertyMock,
+    ) as mock_logger:
+        # arrange
+        handlers_count = len(message_bus.event_handlers[type(message)])
+        # act
+        message_bus.handle_event(message)
+        # assert
+        assert mock_logger.exception.call_count == handlers_count
+        for _ in range(handlers_count):
+            ic(message_bus.event_handlers[type(message)][_].__name__)
+
+
 @pytest.fixture
 def assert_func(
     request,
@@ -72,6 +112,8 @@ def assert_func(
     d = {
         "handle_create_model_command": assert_handle_create_model_command,
         "handle_create_model_error_command": lambda **kwargs: True,
+        "handle_created_model_event": assert_handle_create_model_event,
+        "handle_created_model_error_event": assert_handle_create_model_error_event,
     }
     ic(request.param)
     yield d[request.param]
@@ -116,27 +158,30 @@ class TestMessageBus:
             mock_logger.debug.assert_called_once()
             ic(message_bus.command_handlers[type(message)].__name__)
 
-    @pytest.mark.skip()
+    # @pytest.mark.skip()
     @pytest.mark.parametrize(
-        "message,assert_func",
+        "message, assert_func",
         [
             pytest.param(
                 fake.CreatedModelEvent(model=fake.Model(name="test")),
                 "handle_created_model_event",
                 id="handle_event_success",
             ),
+            pytest.param(
+                fake.CreatedModelErrorEvent(model=fake.Model(name="test")),
+                "handle_created_model_error_event",
+                id="handle_event_error",
+            ),
         ],
+        indirect=["assert_func"],
     )
     def test_handle_event(
         self,
         message_bus: core.MessageBus,
         message,
-        mock_logger: mock.MagicMock,
         assert_func,
     ):
-        message = fake.CreatedModelEvent(model=fake.Model(name="test"))
-        message_bus.handle(message)
-        assert_func(message=message, message_bus=message_bus)
+        assert_func(message, message_bus)
 
     def test_handle_object_is_not_message(
         self,
@@ -145,11 +190,3 @@ class TestMessageBus:
         message = "test"
         with pytest.raises(ValueError, match=f"{message} was not an Event or Command"):
             message_bus.handle(message)
-
-
-    def test_handle_event_with_error(
-        self,
-        message_bus: core.MessageBus,
-    ):
-        message = fake.CreatedModelErrorEvent(model=fake.Model(name="test"))
-        message_bus.handle(message)
