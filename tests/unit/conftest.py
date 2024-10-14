@@ -36,6 +36,6 @@ def event_router() -> core.EventRouter:
             mock.Mock(),
         ],
         fake.CreatedModelErrorEvent: [
-            mock.Mock(),
+            mock.Mock(side_effect=ValueError),
         ],
     }
