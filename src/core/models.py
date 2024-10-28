@@ -6,6 +6,13 @@ from typing import override
 from core import messages
 
 
+def is_serializable(field: str):
+    if field.startswith("_"):
+        return False
+    if field == "events": 
+        return False
+    return True
+
 @dataclasses.dataclass
 class BaseModel:
     """BaseModel."""
@@ -41,7 +48,7 @@ class BaseModel:
     @property
     def json(self):
         """json."""
-        data = {key: val for key, val in self.__dict__.items() if not key.startswith("_")}
+        data = {key: val for key, val in self.__dict__.items() if is_serializable(key)}
         for attr, value in data.items():
             if isinstance(value, datetime):
                 data[attr] = value.strftime(self._datetime_format)
