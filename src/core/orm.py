@@ -1,5 +1,9 @@
 # pylint: disable=global-statement
+import json
+from typing import Any
 from collections.abc import Callable
+
+from sqlalchemy import Text, types
 
 MAPPED_ORM: bool = False
 
@@ -20,3 +24,31 @@ def map_once(mapper_function: Callable[..., None]):
         return mapper_function(*args, **kwargs)
 
     return _start_mappers
+
+
+class PyDict(types.TypeDecorator):
+    impl = Text
+
+    def process_bind_param(self, value: dict[Any, Any], dialect) -> str:
+        if value is not None:
+            value = json.dumps(value)
+        return value
+
+    def process_result_value(self, value: str, dialect) -> dict[Any, Any]:
+        if value is not None:
+            value = json.loads(value)
+        return value
+
+
+class PyList(types.TypeDecorator):
+    impl = Text
+
+    def process_bind_param(self, value: list[Any], dialect) -> str:
+        if value is not None:
+            value = "| ".join([item.model_dump() for item in value])
+        return value
+
+    def process_result_value(self, value: str, dialect) -> list[Any]:
+        if value is not None:
+            value = value.split("| ")
+        return value
