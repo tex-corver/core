@@ -9,9 +9,10 @@ from core import messages
 def is_serializable(field: str):
     if field.startswith("_"):
         return False
-    if field == "events": 
+    if field == "events":
         return False
     return True
+
 
 @dataclasses.dataclass
 class BaseModel:
@@ -22,6 +23,7 @@ class BaseModel:
     updated_time: datetime = dataclasses.field(default_factory=datetime.now)
     events: list[messages.Event] = dataclasses.field(default_factory=list)
     message_id: str | None = None
+    ignore_keys: set[str] = dataclasses.field(default_factory=lambda: {"password"})
 
     _immutable_atributes: set[str] = dataclasses.field(
         default_factory=lambda: {"id", "created_time"}
@@ -48,7 +50,11 @@ class BaseModel:
     @property
     def json(self):
         """json."""
-        data = {key: val for key, val in self.__dict__.items() if is_serializable(key)}
+        data = {
+            key: val
+            for key, val in self.__dict__.items()
+            if key not in self.ignore_keys and is_serializable(key)
+        }
         for attr, value in data.items():
             if isinstance(value, datetime):
                 data[attr] = value.strftime(self._datetime_format)

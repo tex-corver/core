@@ -29,7 +29,7 @@ def config(config_path: str):
 
 @pytest.fixture
 def fake_model() -> Generator[fake.Model, Any, None]:
-    yield fake.Model(name="test")
+    yield fake.Model(name="test", password="test")
 
 
 @pytest.fixture
