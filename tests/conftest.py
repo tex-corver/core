@@ -29,7 +29,12 @@ def config(config_path: str):
 
 @pytest.fixture
 def fake_model() -> Generator[fake.Model, Any, None]:
-    yield fake.Model(name="test", password="test")
+    yield fake.Model(name="test")
+
+
+@pytest.fixture
+def fake_ignore_keys_model() -> Generator[fake.IgnoreKeysModel, Any, None]:
+    yield fake.IgnoreKeysModel(name="test", pin="123456")
 
 
 @pytest.fixture

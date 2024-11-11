@@ -6,9 +6,29 @@ from icecream import ic
 
 class TestBaseModel:
 
-    def test_model_response(
+    @pytest.mark.parametrize(
+        "model, expected_ignore_keys",
+        [
+            pytest.param(
+                "fake_model",
+                set(["password"]),
+                id="base_case",
+            ),
+            pytest.param(
+                "fake_ignore_keys_model",
+                set(["pin"]),
+                id="override_ignore_keys",
+            ),
+        ],
+    )
+    def test_ignore_keys_model_json(
         self,
-        fake_model: fake.Model,
+        model,
+        expected_ignore_keys,
+        request,
     ):
-        ic(fake_model.json)
-        assert "password" not in fake_model.json
+        model = request.getfixturevalue(model)
+        ic(model.json)
+        assert model.ignore_keys == expected_ignore_keys
+        for ignore_key in model.ignore_keys:
+            assert ignore_key not in model.json
