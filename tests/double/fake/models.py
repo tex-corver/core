@@ -38,5 +38,4 @@ class IgnoreKeysModel(core.BaseModel):
         super().__init__(*args, **kwargs)
         self.name = name
         self.pin = pin
-        self.ignore_keys = set(["pin"])
         self.events.append(schemas.CreatedModelEvent(model=self))
