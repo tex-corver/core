@@ -33,6 +33,11 @@ def fake_model() -> Generator[fake.Model, Any, None]:
 
 
 @pytest.fixture
+def fake_ignore_keys_model() -> Generator[fake.IgnoreKeysModel, Any, None]:
+    yield fake.IgnoreKeysModel(name="test", pin="123456", ignore_keys=set(["pin"]))
+
+
+@pytest.fixture
 def command_router() -> core.CommandRouter:
     return {
         fake.CreateModelCommand: fake.create_model,
