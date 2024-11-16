@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import dataclasses
 import uuid
 from datetime import datetime
-from typing import override
+from typing import Any, override
 
 from core import messages
 
@@ -55,12 +57,7 @@ class BaseModel:
             for key, val in self.__dict__.items()
             if key not in self.ignore_keys and is_serializable(key)
         }
-        for attr, value in data.items():
-            if isinstance(value, datetime):
-                data[attr] = value.strftime(self._datetime_format)
-            if isinstance(value, set):
-                data[attr] = list(value)
-        return data
+        return BaseModel.dict_json(data)
 
     @override
     def __repr__(self) -> str:
@@ -71,3 +68,29 @@ class BaseModel:
         """load_from_database."""
         self.events = []
         self._immutable_atributes = set()
+
+    # TODO: Implement a serializer class
+    @classmethod
+    def list_json(cls, l: list[Any]) -> list[dict[str, Any]]:
+        """model_list_json.
+        Assume all element has same type."""
+        if len(l) == 0:
+            return []
+        if isinstance(l[0], BaseModel):
+            return [item.json for item in l]
+        return l
+
+    @classmethod
+    def dict_json(cls, d: dict[str, Any]) -> dict[str, Any]:
+        for attr, value in d.items():
+            if isinstance(value, datetime):
+                d[attr] = value.strftime(cls._datetime_format)
+            if isinstance(value, set):
+                d[attr] = list(value)
+            if isinstance(value, list):
+                d[attr] = BaseModel.list_json(value)
+            if isinstance(value, BaseModel):
+                d[attr] = value.json
+            if isinstance(value, dict):
+                d[attr] = BaseModel.dict_json(value)
+        return d

@@ -1,7 +1,10 @@
-from tests.double import fake
+import dataclasses
 
 import pytest
 from icecream import ic
+
+import core
+from tests.double import fake
 
 
 class TestBaseModel:
@@ -32,3 +35,60 @@ class TestBaseModel:
         assert model.ignore_keys == expected_ignore_keys
         for ignore_key in model.ignore_keys:
             assert ignore_key not in model.json
+
+
+class L2Model(core.BaseModel):
+    a: int = 4
+    b: list[str] = dataclasses.field(default=["a", "b"])
+
+
+class L1Model(core.BaseModel):
+    c: str = "c"
+    d: L2Model = dataclasses.field(default_factory=lambda: L2Model())
+    e: list[L2Model] = dataclasses.field(
+        default_factory=lambda: [L2Model for _ in range(3)]
+    )
+
+    def __init__(
+        self,
+        c="c",
+        d=L2Model(),
+        e=[L2Model() for _ in range(3)],
+    ):
+        super().__init__()
+        self.c = c
+        self.d = d
+        self.e = e
+
+
+class L0Model(core.BaseModel):
+    f: str = "f"
+    g: L1Model = dataclasses.field(default_factory=lambda: L1Model())
+    h: list[L1Model] = dataclasses.field(
+        default_factory=lambda: [L1Model for _ in range(3)]
+    )
+    i: dict[str, L1Model] = dataclasses.field(
+        default_factory=lambda: {f"{i}": L1Model() for i in range(3)}
+    )
+
+    def __init__(
+        self,
+        f="f",
+        g=L1Model(),
+        h=[L1Model() for _ in range(3)],
+        i={f"{i}": L1Model() for i in range(3)},
+    ):
+        super().__init__()
+        self.f = f
+        self.g = g
+        self.h = h
+        self.i = i
+
+
+class TestInheritModel:
+    @pytest.fixture
+    def l0_model(self):
+        return L0Model()
+
+    def test_json(self, l0_model: L0Model):
+        ic(l0_model.json)
