@@ -87,12 +87,14 @@ class L0Model(core.BaseModel):
         g=L1Model(),
         h=[L1Model() for _ in range(3)],
         i={f"{i}": L1Model() for i in range(3)},
+        j=[PydanticModel() for _ in range(3)],
     ):
         super().__init__()
         self.f = f
         self.g = g
         self.h = h
         self.i = i
+        self.j = j
 
 
 class TestInheritModel:
@@ -101,5 +103,5 @@ class TestInheritModel:
         return L0Model()
 
     def test_json(self, l0_model: L0Model):
-        ic(l0_model.json)
+        ic(l0_model.json['j'])
         json.dumps(l0_model.json)

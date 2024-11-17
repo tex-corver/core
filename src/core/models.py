@@ -1,11 +1,12 @@
 from __future__ import annotations
-import json
-import pydantic
 
 import dataclasses
+import json
 import uuid
 from datetime import datetime
 from typing import Any, override
+
+import pydantic
 
 from core import messages
 
@@ -82,6 +83,8 @@ class BaseModel:
             return [item.json for item in l]
         if isinstance(l[0], pydantic.BaseModel):
             return [json.loads(item.model_dump_json()) for item in l]
+        if isinstance(l[0], dict):
+            return [BaseModel.dict_json(item) for item in l]
         return l
 
     @classmethod
