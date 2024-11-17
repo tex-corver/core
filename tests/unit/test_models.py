@@ -1,5 +1,8 @@
 import dataclasses
+import json
+from datetime import datetime
 
+import pydantic
 import pytest
 from icecream import ic
 
@@ -61,6 +64,10 @@ class L1Model(core.BaseModel):
         self.e = e
 
 
+class PydanticModel(pydantic.BaseModel):
+    created_time: datetime = pydantic.Field(default_factory=datetime.now)
+
+
 class L0Model(core.BaseModel):
     f: str = "f"
     g: L1Model = dataclasses.field(default_factory=lambda: L1Model())
@@ -69,6 +76,9 @@ class L0Model(core.BaseModel):
     )
     i: dict[str, L1Model] = dataclasses.field(
         default_factory=lambda: {f"{i}": L1Model() for i in range(3)}
+    )
+    j: list[PydanticModel] = dataclasses.field(
+        default_factory=lambda: [PydanticModel() for _ in range(3)]
     )
 
     def __init__(
@@ -92,3 +102,4 @@ class TestInheritModel:
 
     def test_json(self, l0_model: L0Model):
         ic(l0_model.json)
+        json.dumps(l0_model.json)
