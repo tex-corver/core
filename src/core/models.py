@@ -81,7 +81,7 @@ class BaseModel:
         if isinstance(l[0], BaseModel):
             return [item.json for item in l]
         if isinstance(l[0], pydantic.BaseModel):
-            return [json.loads(item.model_dump_json() for item in l)]
+            return [json.loads(item.model_dump_json()) for item in l]
         return l
 
     @classmethod
