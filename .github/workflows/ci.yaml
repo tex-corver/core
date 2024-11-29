@@ -2,6 +2,14 @@ name: Python CI
 
 on:
   push:
+    branches:
+      - master
+      - dev
+      - NEXT*
+  pull_request:
+    branches:
+      - master
+      - dev
 
 jobs:
   test:
