@@ -1,7 +1,7 @@
 # pylint: disable=global-statement
 import json
-from typing import Any
 from collections.abc import Callable
+from typing import Any
 
 from sqlalchemy import Text, types
 
@@ -29,10 +29,11 @@ def map_once(mapper_function: Callable[..., None]):
 class PyDict(types.TypeDecorator):
     impl = Text
 
-    def process_bind_param(self, value: dict[Any, Any], dialect) -> str:
+    def process_bind_param(self, value: dict[Any, Any], dialect) -> str | None:
         if value is not None:
-            value = json.dumps(value)
-        return value
+            value_str: str = json.dumps(value)
+            return value_str
+        return None
 
     def process_result_value(self, value: str, dialect) -> dict[Any, Any]:
         if value is not None:

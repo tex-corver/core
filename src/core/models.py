@@ -71,6 +71,7 @@ class BaseModel:
         """load_from_database."""
         self.events = []
         self._immutable_atributes = set()
+        self.ignore_keys = set()
 
     # TODO: Implement a serializer class
     @classmethod
