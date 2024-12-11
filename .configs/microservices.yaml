@@ -1,7 +1,0 @@
-microservices:
-  user_service: 
-    host: localhost:8001
-    actions:
-      authorize_token:
-        path: /authorize-token
-        method: GET
