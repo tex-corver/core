@@ -7,7 +7,7 @@ from core import abstract, bootstrap, message_bus, unit_of_work
 
 
 @pytest.fixture
-def mock_session():
+def mock_session() -> Generator[mock.MagicMock, Any, None]:
     session = mock.MagicMock(spec=abstract.Session)
     session.core_session = mock.MagicMock()
     yield session

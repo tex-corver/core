@@ -34,11 +34,12 @@ class TestView:
         mock_bootstrap.return_value = mock_bus
         mock_bus.uow.repo.get.return_value = [fake.Model(name="test")]
         # act
-        model = view.fetch_model(fake.Model, id=1)
-        # assert
-        # bootstrap.assert_called_once()
-        mock_bus.uow.repo.get.assert_called_once_with(fake.Model, id=1)
-        assert model is not None
+        with view.fetch_model(fake.Model, id=1) as model:
+            assert model is not None
+            # assert
+            # bootstrap.assert_called_once()
+            mock_bus.uow.repo.get.assert_called_once_with(fake.Model, id=1)
+            assert model is not None
 
     def test_fetch_models(
         self,
@@ -47,6 +48,7 @@ class TestView:
         view: core.View,
     ):
         # act
-        models = view.fetch_models(fake.Model)
-        # assert
-        mock_session.core_session.query.assert_called_once()
+        with view.fetch_models(fake.Model) as models:
+            assert models is not None
+            # assert
+            mock_session.core_session.query.assert_called_once()

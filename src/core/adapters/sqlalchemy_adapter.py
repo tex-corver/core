@@ -1,18 +1,20 @@
 from __future__ import annotations
 
-from typing import Any, override
+from typing import Any, override, TypeVar, Type
 
 import sqlalchemy
 from sqlalchemy import orm as sqlalchemy_orm
 
 from core import abstract
-from core import models as base_model
+from core import models as base_models
 
 __all__ = [
     "Session",
     "ComponentFactory",
     "Repository",
 ]
+
+T = TypeVar("T", bound=base_models.BaseModel)
 
 
 class Session(abstract.Session):
@@ -65,33 +67,23 @@ class Repository(abstract.Repository):
     @override
     def _add(
         self,
-        models: list[base_model.BaseModel],
+        models: list[T],
         *args,
         **kwargs,
-    ) -> list[base_model.BaseModel]:
+    ) -> list[T]:
         self.session.add_all(models, *args, **kwargs)
         return models
 
     @override
     def _get(
         self,
-        model_class: type[base_model.BaseModel],
+        model_class: Type[T],
         **identities,
-    ) -> list[base_model.BaseModel]:
+    ) -> list[T]:
         return self.session.query(model_class).filter_by(**identities).all()
 
     @override
-    def _filter(
-        self,
-        model_class: type[base_model.BaseModel],
-        *args,
-        **kwargs,
-    ) -> list[base_model.BaseModel]:
-        models = self.session.query(model_class).filter(*args, **kwargs).all()
-        return models
-
-    @override
-    def _remove(self, model: base_model.BaseModel, *args, **kwargs):
+    def _remove(self, model: T, *args, **kwargs):
         self.session.delete(model, *args, **kwargs)
 
 

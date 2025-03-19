@@ -51,7 +51,18 @@ def _test_view(
 class TestView:
     def test_default_view(
         self,
-        add_model,
+        add_model: fake.Model,
+        bus: core.MessageBus,
     ):
+        """Test that the default view can fetch models correctly."""
+        # Get the default view
         view = core.VIEW
-        _test_view(view, add_model)
+
+        # Verify we can fetch the model that was added
+        with view.fetch_model(fake.Model, name=add_model.name) as model:
+            assert model is not None
+            assert model.name == add_model.name
+
+        # Test fetching non-existent model returns None
+        with view.fetch_model(fake.Model, name="does_not_exist") as model:
+            assert model is None
