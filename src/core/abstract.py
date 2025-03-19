@@ -61,18 +61,6 @@ class Repository(abc.ABC):
 
         return models
 
-    def filter(self, model_class: type[base_model.BaseModel], *args, **kwargs):
-        """filter.
-
-        Args:
-            model_class (type[base_model.BaseModel]): model_class
-            args:
-            kwargs:
-        """
-        models = self._filter(model_class, *args, **kwargs)
-        self.cache(models)
-        return models
-
     def remove(self, model: base_model.BaseModel, *args, **kwargs):
         """remove.
 
@@ -107,15 +95,6 @@ class Repository(abc.ABC):
         *args,
         **kwargs,
     ):
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def _filter(
-        self,
-        model_class: type[base_model.BaseModel],
-        *args,
-        **kwargs,
-    ) -> list[base_model.BaseModel]:
         raise NotImplementedError
 
 

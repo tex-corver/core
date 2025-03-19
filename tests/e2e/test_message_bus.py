@@ -25,11 +25,11 @@ class TestMessageBus:
     ):
         command = fake.CreateModelCommand(name="test")
         bus.handle(command)
+        view = views.get_view()
 
-        model = views.fetch_model(fake.Model, message_id=command._id)
-
-        assert model
-        assert model.name == "test"
+        with view.fetch_model(fake.Model, message_id=command._id) as model:
+            assert model is not None
+            assert model.name == "test"
 
     def test_handle_error_command(
         self,
@@ -41,6 +41,6 @@ class TestMessageBus:
         ):
             bus.handle(command)
 
-        model = views.fetch_model(fake.Model, message_id=command._id)
-
-        assert not model
+        view = views.get_view()
+        with view.fetch_model(fake.Model, message_id=command._id) as model:
+            assert model is None
