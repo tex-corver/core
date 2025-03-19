@@ -15,14 +15,14 @@ NEW_IMAGE_TAG := $(REGISTRY_SERVER)/docker/$(service):$(ref_name).$(commit_sha)
 
 .PHONY: _test
 _test:
-	CONFIG_PATH=$(config_path) pytest \
+	@CONFIG_PATH=$(config_path) pytest \
 		-c $(project_path)/pyproject.toml \
 		$(o) \
 		$(project_path)/tests/$(p)
 
 .PHONY: test
 test: 
-	$(MAKE) _test p="$(p)" o=" \
+	@$(MAKE) _test p="$(p)" o=" \
 		-x \
 		-s \
 		-vvv \
@@ -38,4 +38,4 @@ test:
 
 .PHONY: local-test
 local-test:
-	$(MAKE) _test p="$(p)" o="$(o)"
+	@$(MAKE) _test p="$(p)" o="$(o)"

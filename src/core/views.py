@@ -42,12 +42,11 @@ class View:
         Returns:
             T: An instance of the BaseModel.
         """
-        bus = bootstrap.bootstrap()
-        with bus.uow:
-            models = bus.uow.repo.get(
-                model_cls,
-                **identities,
-            )
+        factory = core.sqlalchemy_adapter.ComponentFactory(self.config)
+        session = factory.create_session()
+        with session.core_session:
+            query = session.core_session.query(model_cls).filter_by(**identities)
+            models = [model for model in query.all() if model]
             yield models[0] if len(models) else None
 
     @contextlib.contextmanager
@@ -106,7 +105,7 @@ class View:
             yield query.all()
 
 
-VIEW: View = View(config=utils.get_config())
+VIEW: View = View(config=utils.get_config()["database"])
 
 
 def get_view() -> View:

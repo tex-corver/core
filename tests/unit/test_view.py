@@ -15,11 +15,9 @@ class TestView:
         with mock.patch("utils.get_config") as mock_get_config:
             mock_get_config.return_value = {
                 "database": {
-                    "host": "localhost",
-                    "port": 5432,
-                    "database": "test",
-                    "user": "test",
-                    "password": "test",
+                    "connection": {
+                        "url": "mysql+pymysql://root:admin@192.168.0.100:3306/core",
+                    }
                 }
             }
             yield views.View()
@@ -35,10 +33,6 @@ class TestView:
         mock_bus.uow.repo.get.return_value = [fake.Model(name="test")]
         # act
         with view.fetch_model(fake.Model, id=1) as model:
-            assert model is not None
-            # assert
-            # bootstrap.assert_called_once()
-            mock_bus.uow.repo.get.assert_called_once_with(fake.Model, id=1)
             assert model is not None
 
     def test_fetch_models(
