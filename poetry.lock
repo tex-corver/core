@@ -1163,20 +1163,20 @@ rsa = ["cryptography"]
 
 [[package]]
 name = "pytest"
-version = "8.2.2"
+version = "8.3.5"
 description = "pytest: simple powerful testing with Python"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "pytest-8.2.2-py3-none-any.whl", hash = "sha256:c434598117762e2bd304e526244f67bf66bbd7b5d6cf22138be51ff661980343"},
-    {file = "pytest-8.2.2.tar.gz", hash = "sha256:de4bb8104e201939ccdc688b27a89a7be2079b22e2bd2b07f806b6ba71117977"},
+    {file = "pytest-8.3.5-py3-none-any.whl", hash = "sha256:c69214aa47deac29fad6c2a4f590b9c4a9fdb16a403176fe154b79c0b4d4d820"},
+    {file = "pytest-8.3.5.tar.gz", hash = "sha256:f4efe70cc14e511565ac476b57c279e12a855b11f48f212af1080ef2263d3845"},
 ]
 
 [package.dependencies]
 colorama = {version = "*", markers = "sys_platform == \"win32\""}
 iniconfig = "*"
 packaging = "*"
-pluggy = ">=1.5,<2.0"
+pluggy = ">=1.5,<2"
 
 [package.extras]
 dev = ["argcomplete", "attrs (>=19.2)", "hypothesis (>=3.56)", "mock", "pygments (>=2.7.2)", "requests", "setuptools", "xmlschema"]
@@ -1420,11 +1420,12 @@ blackdoc = "^0.3.9"
 dotmap = "^1.3.30"
 httpx = "^0.27.0"
 loguru = "^0.7.2"
+pre-commit = "3.8.0"
 psycopg2-binary = "^2.9.9"
 pydantic = "^2.8.0"
 pyjwt = "^2.8.0"
 pylint = "^3.0.2"
-pytest = "8.2.2"
+pytest = "^8.2.2"
 pyyaml = "^6.0.1"
 sqlalchemy = "^2.0.23"
 
@@ -1432,7 +1433,7 @@ sqlalchemy = "^2.0.23"
 type = "git"
 url = "git@github.com:tex-corver/utils.git"
 reference = "HEAD"
-resolved_reference = "534f8c0a490bcf96ceb62e60d43ea2d51013b4ba"
+resolved_reference = "2776108ac8a5939c7e2a42fc6c022adfeca3d968"
 
 [[package]]
 name = "tomli"

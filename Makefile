@@ -12,6 +12,8 @@ ref_name := $(shell git rev-parse --abbrev-ref HEAD)
 IMAGE := $(REGISTRY_SERVER)\/docker\/$(service):$(ref_name)\.
 NEW_IMAGE_TAG := $(REGISTRY_SERVER)/docker/$(service):$(ref_name).$(commit_sha)
 
+update-tex-corver:
+	poetry update $(shell poetry show --outdated | grep '^tex-corver' | awk '{print $$1}')
 
 .PHONY: _test
 _test:
@@ -22,7 +24,7 @@ _test:
 
 .PHONY: test
 test: 
-	@$(MAKE) _test p="$(p)" o=" \
+	@$(MAKE) _test p='$(p)' o=' \
 		-x \
 		-s \
 		-vvv \
@@ -34,8 +36,8 @@ test:
 		--cov-report=term-missing \
 		--cov-fail-under=80 \
 		$(o) \
-		"
+		'
 
 .PHONY: local-test
 local-test:
-	@$(MAKE) _test p="$(p)" o="$(o)"
+	@$(MAKE) _test p='$(p)' o='$(o)'

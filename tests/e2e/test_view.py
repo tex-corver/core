@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, Callable
+from typing import Any, Callable, Generator
 
 import pytest
 import utils
@@ -10,7 +10,7 @@ from tests.double import fake
 
 
 @pytest.fixture
-def model(bus: core.MessageBus):
+def model(bus: core.MessageBus) -> fake.Model:
     yield fake.Model(name=str(uuid.uuid4()))
 
 
@@ -18,37 +18,17 @@ def model(bus: core.MessageBus):
 def add_model(
     model: fake.Model,
     bus: core.MessageBus,
-):
+) -> Generator[fake.Model, None, None]:
     with bus.uow as uow:
         uow.repo.add(model)
         uow.commit()
     yield model
 
 
-def _test_view(
-    view: core.View,
-    model: fake.Model,
-):
-    __test__ = False
-
-    def _test_fetch_model(
-        view: core.View,
-        added_model: fake.Model,
-    ):
-        model = view.fetch_model(
-            fake.Model,
-            name=added_model.name,
-        )
-        assert model.name == added_model.name
-
-    _test_fetch_model(
-        view,
-        model,
-    )
 
 
 @pytest.fixture(params=["builtin", "on_the_fly"])
-def view(request):
+def view(request: pytest.FixtureRequest) -> core.View:
     case_name = request.param
     match case_name:
         case "builtin":
@@ -61,40 +41,47 @@ def view(request):
 class TestView:
 
     @pytest.fixture
-    def identities(self, request):
+    def identities(
+        self,
+        add_model: fake.Model,
+        request: pytest.FixtureRequest,
+    ) -> Generator[dict[str, Any], None, None]:
         case_name = request.node.callspec.id
         match case_name:
-            case "success:builtin":
-                yield {}
+            case case_name if case_name.endswith("success:default"):
+                yield {"name": add_model.name}
+            case case_name if case_name.endswith("fail:wrong-identities"):
+                yield {"name": "wrong_name"}
 
     @pytest.fixture
     def expected_model(
         self,
         add_model: fake.Model,
-        request,
-    ):
+        request: pytest.FixtureRequest,
+    ) -> Generator[fake.Model | None, None, None]:
         case_name = request.node.callspec.id
         match case_name:
-            case "success:builtin":
-                yield fake.Model(name="test")
-            case "fail:wrong_identities":
-                yield fake.Model(name="test")
+            case case_name if case_name.endswith("success:default"):
+                yield add_model
+            case case_name if case_name.endswith("fail:wrong-identities"):
+                yield None
+            case _:
+                breakpoint()
 
     @pytest.mark.parametrize(
         "identities, expected_model",
         [
-            pytest.param({}, id="success:default"),
-            pytest.param({}, id="fail:wrong_identities"),
+            pytest.param({}, {}, id="success:default"),
+            pytest.param({}, {}, id="fail:wrong-identities"),
         ],
         indirect=["identities", "expected_model"],
     )
     def test_fetch_model(
         self,
-        add_model: fake.Model,
         view: core.View,
         identities: dict[str, Any],
-        expected_model: fake.Model,
-    ):
+        expected_model: fake.Model | None,
+    ) -> None:
         """Test that the default view can fetch models correctly."""
         with view.fetch_model(fake.Model, **identities) as model:
-            assert model.name == expected_model.name
+            assert model == expected_model

@@ -23,6 +23,8 @@ class Model(core.BaseModel):
         self.password = password
         self.events.append(schemas.CreatedModelEvent(model=self))
 
+    def __eq__(self, other):
+        return self.name == other.name
 
 class IgnoreKeysModel(core.BaseModel):
     name: str
@@ -39,3 +41,4 @@ class IgnoreKeysModel(core.BaseModel):
         self.name = name
         self.pin = pin
         self.events.append(schemas.CreatedModelEvent(model=self))
+
