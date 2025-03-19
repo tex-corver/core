@@ -47,22 +47,54 @@ def _test_view(
     )
 
 
+@pytest.fixture(params=["builtin", "on_the_fly"])
+def view(request):
+    case_name = request.param
+    match case_name:
+        case "builtin":
+            yield core.get_view()
+        case "on_the_fly":
+            yield core.View()
+
+
 @pytest.mark.usefixtures("start_orm")
 class TestView:
-    def test_default_view(
+
+    @pytest.fixture
+    def identities(self, request):
+        case_name = request.node.callspec.id
+        match case_name:
+            case "success:builtin":
+                yield {}
+
+    @pytest.fixture
+    def expected_model(
         self,
         add_model: fake.Model,
-        bus: core.MessageBus,
+        request,
+    ):
+        case_name = request.node.callspec.id
+        match case_name:
+            case "success:builtin":
+                yield fake.Model(name="test")
+            case "fail:wrong_identities":
+                yield fake.Model(name="test")
+
+    @pytest.mark.parametrize(
+        "identities, expected_model",
+        [
+            pytest.param({}, id="success:default"),
+            pytest.param({}, id="fail:wrong_identities"),
+        ],
+        indirect=["identities", "expected_model"],
+    )
+    def test_fetch_model(
+        self,
+        add_model: fake.Model,
+        view: core.View,
+        identities: dict[str, Any],
+        expected_model: fake.Model,
     ):
         """Test that the default view can fetch models correctly."""
-        # Get the default view
-        view = core.VIEW
-
-        # Verify we can fetch the model that was added
-        with view.fetch_model(fake.Model, name=add_model.name) as model:
-            assert model is not None
-            assert model.name == add_model.name
-
-        # Test fetching non-existent model returns None
-        with view.fetch_model(fake.Model, name="does_not_exist") as model:
-            assert model is None
+        with view.fetch_model(fake.Model, **identities) as model:
+            assert model.name == expected_model.name

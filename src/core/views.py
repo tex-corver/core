@@ -10,6 +10,8 @@ from core import bootstrap
 __all__ = [
     "View",
     "VIEW",
+    "get_view",
+    "set_view",
 ]
 T = TypeVar("T", bound=core.BaseModel)
 
