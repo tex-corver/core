@@ -1,7 +1,7 @@
 import dataclasses
 import json
 from datetime import datetime
-
+from typing import Any
 import pydantic
 import pytest
 from icecream import ic
@@ -12,32 +12,57 @@ from tests.double import fake
 
 class TestBaseModel:
 
+    @pytest.fixture
+    def kwargs(
+        self, ignore_keys: set[str], request: pytest.FixtureRequest
+    ) -> dict[str, Any]:
+        if hasattr(request.node, "callspec"):
+            case_name = request.node.callspec.id
+            match case_name:
+                case case_name if "success:base" in case_name:
+                    return {"name": "test"}
+                case case_name if "success:all-fields" in case_name:
+                    return {"name": "test", "password": "123456"}
+                case case_name if "success:override-ignore-keys" in case_name:
+                    return {"name": "test", "ignore_keys": ignore_keys}
+        return {"name": "test"}
+
     @pytest.mark.parametrize(
-        "model, expected_ignore_keys",
+        "kwargs",
+        [
+            pytest.param({}, id="success:base"),
+            pytest.param({}, id="success:all-fields"),
+            pytest.param({}, id="success:override-ignore-keys"),
+        ],
+        indirect=["kwargs"],
+    )
+    def test_init(self, kwargs: dict[str, Any]):
+        model = fake.Model(**kwargs)
+        for key, value in kwargs.items():
+            assert getattr(model, key) == value
+
+    @pytest.mark.parametrize(
+        "model",
         [
             pytest.param(
-                "fake_model",
-                set(["password"]),
-                id="base_case",
+                {},
+                id="success:base",
             ),
             pytest.param(
-                "fake_ignore_keys_model",
-                set(["pin"]),
-                id="override_ignore_keys",
+                {},
+                id="success:override-ignore-keys",
             ),
         ],
+        indirect=["model"],
     )
-    def test_ignore_keys_model_json(
+    def test_json(
         self,
-        model,
-        expected_ignore_keys,
-        request,
+        model: fake.Model,
+        ignore_keys: set[str],
     ):
-        model = request.getfixturevalue(model)
-        ic(model.json)
-        assert model.ignore_keys == expected_ignore_keys
-        for ignore_key in model.ignore_keys:
-            assert ignore_key not in model.json
+        model_json = model.json
+        for ignore_key in ignore_keys:
+            assert ignore_key not in model_json
 
 
 class L2Model(core.BaseModel):
@@ -103,5 +128,5 @@ class TestInheritModel:
         return L0Model()
 
     def test_json(self, l0_model: L0Model):
-        ic(l0_model.json['j'])
+        ic(l0_model.json["j"])
         json.dumps(l0_model.json)

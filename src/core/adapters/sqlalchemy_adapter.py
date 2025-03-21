@@ -7,6 +7,7 @@ from sqlalchemy import orm as sqlalchemy_orm
 
 from core import abstract
 from core import models as base_models
+from core.configurations import DatabaseConfig
 
 __all__ = [
     "Session",
@@ -156,12 +157,41 @@ class Database:
                 self.remove(table, model_id)
 
 
+class SQLAlchemyConfig(DatabaseConfig):
+    """SQLAlchemyConfiguration."""
+
+    framework: str = "sqlalchemy"
+
+    @classmethod
+    def from_database_config(cls, config: DatabaseConfig) -> SQLAlchemyConfig:
+        return cls(
+            framework=config.framework,
+            connection=config.connection,
+        )
+
+
 class ComponentFactory(abstract.ComponentFactory):
     """ComponentFactory."""
 
-    def __init__(self, config: dict[str, Any]):
-        self.engine = sqlalchemy.create_engine(**config["connection"])
-        self.session_factory = SessionFactory(self.engine)
+    config_cls: Type[DatabaseConfig] = SQLAlchemyConfig
+
+    def __init__(
+        self,
+        config: dict[str, Any] | SQLAlchemyConfig | DatabaseConfig,
+    ):
+        if isinstance(config, DatabaseConfig):
+            config = SQLAlchemyConfig.from_database_config(config)
+        super().__init__(config)
+        self.engine = self._init_engine()
+        self.session_factory = self._init_session_factory()
+
+    def _init_engine(self) -> sqlalchemy.Engine:
+        return sqlalchemy.create_engine(
+            url=self.config.connection.url, **self.config.connection.args
+        )
+
+    def _init_session_factory(self) -> SessionFactory:
+        return SessionFactory(self.engine)
 
     @override
     def create_session(self, *args, **kwargs) -> Session:

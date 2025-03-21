@@ -24,20 +24,22 @@ class TestView:
 
     def test_fetch_model(
         self,
-        mock_bootstrap: mock.MagicMock,
-        mock_bus: mock.MagicMock,
+        mock_factory: mock.MagicMock,
+        mock_session: mock.MagicMock,
         view: core.View,
+        model: fake.Model,
     ):
         # arrange
-        mock_bootstrap.return_value = mock_bus
-        mock_bus.uow.repo.get.return_value = [fake.Model(name="test")]
+        mock_session.core_session.query.return_value.filter_by.return_value.all.return_value = [
+            model
+        ]
         # act
-        with view.fetch_model(fake.Model, id=1) as model:
-            assert model is not None
+        with view.fetch_model(fake.Model, name=model.name) as model_:
+            assert model_ is not None
 
     def test_fetch_models(
         self,
-        mock_component_factory: mock.MagicMock,
+        mock_factory: mock.MagicMock,
         mock_session: mock.MagicMock,
         view: core.View,
     ):

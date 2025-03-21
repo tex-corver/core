@@ -11,6 +11,7 @@ from core.test.fixtures import (
     mock_bootstrap,
     mock_bus,
     mock_component_factory,
+    mock_factory,
     mock_repo,
     mock_session,
     mock_uow,

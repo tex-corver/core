@@ -57,6 +57,15 @@ def mock_bootstrap(mock_bus: mock.MagicMock) -> Generator[mock.MagicMock, Any, N
         mock_bootstrap.return_value = mock_bus
         yield mock_bootstrap
 
+@pytest.fixture
+def mock_factory(mock_session: mock.MagicMock) -> Generator[mock.MagicMock, Any, None]:
+    factory = mock.MagicMock(spec=abstract.ComponentFactory)
+    factory.create_session.return_value = mock_session
+    with mock.patch(
+        "core.sqlalchemy_adapter.ComponentFactory",
+        return_value=factory,
+    ) as mock_factory:
+        yield mock_factory
 
 @pytest.fixture
 def bootstrapper(

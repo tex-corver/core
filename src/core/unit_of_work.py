@@ -12,8 +12,8 @@ class UnsupportedDatabaseFrameworkException(Exception):
 class UnitOfWork:
     """UnitOfWork."""
 
-    repo: abstract.Repository | None = None
     factory: abstract.ComponentFactory
+    repo: abstract.Repository | None = None
     session: abstract.Session | None = None
 
     def __init__(self, config: dict[str, Any] | None = None):

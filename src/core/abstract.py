@@ -1,22 +1,26 @@
 from __future__ import annotations
 
 import abc
-from typing import Any
+from typing import Any, Generic, TypeVar, Type
 
-from core import models as base_model
+from core.configurations import DatabaseConfig
+from core.models import BaseModel
+
+
+T = TypeVar("T", bound=BaseModel)
 
 
 class Repository(abc.ABC):
     """Repository."""
 
     def __init__(self):
-        self.cached: dict[Any, base_model.BaseModel] = {}
+        self.cached: dict[Any, T] = {}
 
-    def cache(self, models: list[base_model.BaseModel]):
+    def cache(self, models: list[T]):
         """cache.
 
         Args:
-            models (list[base_model.BaseModel]): models
+            models (list[T]): models
         """
         for model in models:
             model_id = model.id
@@ -24,14 +28,14 @@ class Repository(abc.ABC):
 
     def add(
         self,
-        models: list[base_model.BaseModel] | base_model.BaseModel,
+        models: list[T] | T,
         *args,
         **kwargs,
     ):
         """add.
 
         Args:
-            models (list[base_model.BaseModel] | base_model.BaseModel): models
+            models (list[T] | T): models
             args:
             kwargs:
         """
@@ -43,25 +47,35 @@ class Repository(abc.ABC):
 
     def get(
         self,
-        model_class: type[base_model.BaseModel],
+        model_cls: Type[T],
         **identities,
-    ) -> list[base_model.BaseModel]:
+    ) -> list[T]:
         """get.
 
         Args:
-            model_class (type[base_model.BaseModel]): model_class
+            model_cls (type[T]): model_class
             many (bool): many
             identities:
 
         Returns:
-            list[base_model.BaseModel] | base_model.BaseModel | None:
+            list[T] | T | None:
         """
-        models = self._get(model_class, **identities)
+        models = self._get(model_cls, **identities)
         self.cache(models)
-
         return models
 
-    def remove(self, model: base_model.BaseModel, *args, **kwargs):
+    def get_model(self, model_cls: Type[T], **identities) -> T | None:
+        model = self._get(model_cls, **identities)
+        if len(model) == 0:
+            return None
+        return model[0]
+
+    def get_models(self, model_cls: Type[T], **identities) -> list[T]:
+        models = self._get(model_cls, **identities)
+        self.cache(models)
+        return models
+
+    def remove(self, model: T, *args, **kwargs):
         """remove.
 
         Args:
@@ -74,24 +88,24 @@ class Repository(abc.ABC):
     @abc.abstractmethod
     def _get(
         self,
-        model_class: type[base_model.BaseModel],
+        model_cls: Type[T],
         **identities,
-    ) -> list[base_model.BaseModel]:
+    ) -> list[T]:
         raise NotImplementedError
 
     @abc.abstractmethod
     def _add(
         self,
-        models: list[base_model.BaseModel],
+        models: list[T],
         *args,
         **kwargs,
-    ) -> list[base_model.BaseModel]:
+    ) -> list[T]:
         raise NotImplementedError
 
     @abc.abstractmethod
     def _remove(
         self,
-        model: base_model.BaseModel,
+        model: T,
         *args,
         **kwargs,
     ):
@@ -142,6 +156,15 @@ class Session(abc.ABC):
 
 class ComponentFactory(abc.ABC):
     """ComponentFactory."""
+
+    config_cls: Type[DatabaseConfig] = DatabaseConfig
+
+    def __init__(self, config: dict[str, Any] | DatabaseConfig):
+        if isinstance(config, dict):
+            self.config = self.config_cls(**config)
+        else:
+            assert isinstance(config, self.config_cls)
+            self.config = config
 
     @abc.abstractmethod
     def create_session(self, *args, **kwargs) -> Session:

@@ -2,16 +2,16 @@ from typing import Any
 
 import utils
 
-from .. import abstract
-from . import sqlalchemy_adapter
+from core import abstract
+from core.adapters import sqlalchemy_adapter
 
-adapter_routers = {
+adapter_routers: dict[str, type[abstract.ComponentFactory]] = {
     "sqlalchemy": sqlalchemy_adapter.ComponentFactory,
 }
 
 
 def create_component_factory(
-    config: dict[str, Any] | None = None
+    config: dict[str, Any] | None = None,
 ) -> abstract.ComponentFactory:
     """create_component_factory.
 
