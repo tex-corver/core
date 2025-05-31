@@ -95,7 +95,7 @@ class BaseModel:
         for attr, value in d.items():
             if isinstance(value, datetime):
                 d[attr] = value.strftime(cls._datetime_format)
-            if isinstance(value, date):
+            if isinstance(value, date) and not isinstance(value, datetime):
                 d[attr] = value.strftime(cls._date_format)
             if isinstance(value, set):
                 d[attr] = list(value)
