@@ -4,6 +4,7 @@ import dataclasses
 import json
 import uuid
 from datetime import datetime
+from datetime import date
 from typing import Any, override
 
 import pydantic
@@ -34,6 +35,7 @@ class BaseModel:
         default_factory=lambda: {"id", "created_time"}
     )
     _datetime_format: str = "%Y-%m-%d %H:%M:%S"
+    _date_format: str = "%Y-%m-%d"
 
     @classmethod
     def immutable_atributes(cls):
@@ -93,6 +95,8 @@ class BaseModel:
         for attr, value in d.items():
             if isinstance(value, datetime):
                 d[attr] = value.strftime(cls._datetime_format)
+            if isinstance(value, date):
+                d[attr] = value.strftime(cls._date_format)
             if isinstance(value, set):
                 d[attr] = list(value)
             if isinstance(value, list):
