@@ -57,7 +57,7 @@ class View:
         model_cls: Type[T],
         load_strategy: str = "noload",
         exclude_relationships: list[str] | None = None,
-        orders: list[str] | None = None,
+        orders: str | None = None,
         limit: int = 20,
         offset: int = 0,
         **filters,
@@ -68,7 +68,7 @@ class View:
             model_cls (Type[T]): The class of the models.
             load_strategy (str, optional): Defaults to "noload".
             exclude_relationships (list[str], optional): Defaults to None.
-            orders (list[str], optional): Defaults to None.
+            orders (str, optional): Defaults to None.
             limit (int, optional): Defaults to 20.
             offset (int, optional): Defaults to 0.
             filters (kwargs): Filters of the query.
