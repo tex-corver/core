@@ -48,3 +48,15 @@ class TestView:
             assert models is not None
             # assert
             mock_session.core_session.query.assert_called_once()
+
+    def test_fetch_models_without_limit_offset(
+        self,
+        mock_factory: mock.MagicMock,
+        mock_session: mock.MagicMock,
+        view: core.View,
+    ):
+        # act
+        with view.fetch_models(fake.Model, limit=None, offset=None) as models:
+            assert models is not None
+            # assert
+            mock_session.core_session.query.all.assert_called_once()
