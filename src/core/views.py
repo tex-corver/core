@@ -58,8 +58,8 @@ class View:
         load_strategy: str = "noload",
         exclude_relationships: list[str] | None = None,
         orders: str | None = None,
-        limit: int = 20,
-        offset: int = 0,
+        limit: int | None = 20,
+        offset: int | None = 0,
         **filters,
     ) -> Generator[list[T], Any, None]:
         """fetch_models
@@ -98,7 +98,8 @@ class View:
                 session.core_session.query(model_cls)
                 .filter_by(**filters)
                 .order_by(*orders)
-                .slice(offset, offset + limit)
+                .limit(limit)
+                .offset(offset)
             )
             for relationship in exclude_relationships:
                 query = query.options(
