@@ -64,6 +64,18 @@ class TestBaseModel:
         for ignore_key in ignore_keys:
             assert ignore_key not in model_json
 
+    def test_json_with_datetime_format(
+        self,
+        model: fake.Model,
+    ):
+        model._datetime_format = "%H:%M:%S %Y-%m-%d"
+        model_json = model.json
+
+        try:
+            datetime.strptime(model_json["time"], "%H:%M:%S %Y-%m-%d")
+        except ValueError as e:
+            pytest.fail(f"Datetime format is incorrect: {e}")
+
 
 class L2Model(core.BaseModel):
     a: int = 4
