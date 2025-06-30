@@ -4,12 +4,10 @@ version = "0.1.0"
 description = ""
 authors = ["lle <hjjddbz@gmail.com>"]
 readme = "README.md"
-packages = [
-    { include = "core", from = "src" },
-]
+packages = [{ include = "core", from = "src" }]
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = ">=3.12"
 black = "^23.11.0"
 pydantic = "^2.6.2"
 loguru = "^0.7.2"
@@ -18,7 +16,7 @@ pytest-cov = "^5.0.0"
 pre-commit = "3.8.0"
 pymysql = "^1.1.1"
 
-tex-corver-utils = {git = "git@github.com:tex-corver/utils.git"}
+tex-corver-utils = { git = "git@github.com:tex-corver/utils.git" }
 mypy = "^1.13.0"
 
 [tool.poetry.group.dev.dependencies]
