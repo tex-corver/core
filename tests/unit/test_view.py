@@ -59,4 +59,4 @@ class TestView:
         with view.fetch_models(fake.Model, limit=None, offset=None) as models:
             assert models is not None
             # assert
-            mock_session.core_session.query.all.assert_called_once()
+            mock_session.core_session.query.return_value.filter_by.return_value.order_by.return_value.limit.return_value.offset.return_value.all.assert_called_once()
