@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Generic, TypeVar, Type
+from typing import Any, Generic, Type, TypeVar
 
 from core.configurations import DatabaseConfig
 from core.models import BaseModel
-
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -68,6 +67,7 @@ class Repository(abc.ABC):
         model = self._get(model_cls, **identities)
         if len(model) == 0:
             return None
+        self.cache(model[:1])
         return model[0]
 
     def get_models(self, model_cls: Type[T], **identities) -> list[T]:
